@@ -1,27 +1,29 @@
-
-use axum::{http::StatusCode, response::IntoResponse, routing::get, Json, Router};
-use std::net::SocketAddr;
-use tower_http::cors::{Any, CorsLayer};
+mod file_handler;
 
 mod types;
 use types::Person;
 
+use axum::{http::StatusCode, response::IntoResponse, routing::get, Json, Router};
+use file_handler::static_router;
+use std::net::SocketAddr;
+use tower_http::cors::{Any, CorsLayer};
+
+
+
 #[tokio::main]
 async fn main() {
-    let cors = CorsLayer::new().allow_origin(Any);
+    // let cors = CorsLayer::new().allow_origin(Any);
 
-    let app = Router::new()
-        .route("/", get(root))
-        .route("/people", get(get_people))
-        .layer(cors);
+    let app = static_router("frontend/dist");
+        // .route("/", get(root));
+        // .route("/people", get(get_people))
+        // .layer(cors);
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     println!("listening on {}", addr);
 
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
+    axum::serve(listener, app).await.unwrap();
 }
 
 async fn root() -> &'static str {
