@@ -32,7 +32,7 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
   // Create user table
   conn.query_drop(format!(
     "CREATE TABLE IF NOT EXISTS users (
-      id int not null,
+      id int not null AUTO_INCREMENT,
       username text not null,
       password_hash text not null,
       firstname text not null,
@@ -42,15 +42,41 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
       address text,
       zipcode text,
       co text,
-      country text
+      country text,
+      PRIMARY KEY (id)
     );",
-    ))?;
+  ))?;
 
 
+  // Print out user table
+  println!("DESCRIBE users;");
   conn.query_iter(
     r"DESCRIBE users;"
   )?
-  .for_each(|row| println!("{:?}", row));
+  .for_each(|row| println!("{:?}", row.unwrap()));
+
+
+  // Create items table
+  conn.query_drop(format!(
+    "CREATE TABLE IF NOT EXISTS items (
+      id int not null AUTO_INCREMENT,
+      title text not null,
+      description text,
+      price int not null,
+      in_stock int not null,
+      average_rating float,
+      discounted_price int,
+      PRIMARY KEY (id)
+    );",
+  ))?;
+
+
+  // Print out items table
+  println!("DESCRIBE items;");
+  conn.query_iter(
+    r"DESCRIBE items;"
+  )?
+  .for_each(|row| println!("{:?}", row.unwrap()));
 
   Ok(())
 }

@@ -20,5 +20,5 @@ name = "main"
 path = "src/main.rs"
 
 [[bin]]
-name = "update_db"
-path = "src/update_db.rs"
+name = "setup_db"
+path = "src/setup_db.rs"
