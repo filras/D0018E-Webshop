@@ -1,8 +1,8 @@
 mod file_handler;
-
+mod api;
 mod types;
 use types::Person;
-
+use api::{post_items, get_items};
 use axum::{http::StatusCode, response::IntoResponse, routing::get, Json, Router};
 use file_handler::static_router;
 use std::net::SocketAddr;
@@ -14,8 +14,9 @@ use tower_http::cors::{Any, CorsLayer};
 async fn main() {
     // let cors = CorsLayer::new().allow_origin(Any);
 
-    let app = static_router("frontend/dist");
-        // .route("/", get(root));
+    let app = Router::new()
+        .route("/", get(root))
+        .route("/items", get(get_items).post(post_items));
         // .route("/people", get(get_people))
         // .layer(cors);
 
