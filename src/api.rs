@@ -8,9 +8,8 @@ use axum::{
 use serde::Serialize;
 use std::fs::File;
 use std::path::Path;
-use serde::{de, Deserialize, Deserializer};
-use serde_json::{to_writer_pretty};
-use std::{fmt, str::FromStr};
+use serde::Deserialize;
+use serde_json::to_writer_pretty;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Item {

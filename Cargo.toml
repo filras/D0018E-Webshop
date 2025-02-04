@@ -7,7 +7,11 @@ default-run = "main"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-axum = "0.7.1"
+anyhow = "1.0.95"
+async-trait = "0.1.86"
+axum = "0.8.1"
+axum_session = "0.16.0"
+axum_session_auth = "0.16.0"
 dotenv = "0.15.0"
 mysql = "26.0.0"
 serde = { version = "1.0", features = ["derive"] }

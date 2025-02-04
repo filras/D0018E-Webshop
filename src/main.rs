@@ -1,12 +1,11 @@
 mod file_handler;
 mod api;
+mod auth;
 mod types;
 use types::Person;
 use api::{post_items, get_items};
 use axum::{http::StatusCode, response::IntoResponse, routing::get, Json, Router};
-use file_handler::static_router;
 use std::net::SocketAddr;
-use tower_http::cors::{Any, CorsLayer};
 
 
 
