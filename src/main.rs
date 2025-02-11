@@ -1,22 +1,36 @@
-mod file_handler;
 mod api;
 mod auth;
-mod types;
-use types::Person;
-use api::{post_items, get_items};
-use axum::{http::StatusCode, response::IntoResponse, routing::get, Json, Router};
+mod file_handler;
+use api::{get_items, post_items};
+use axum::{routing::get, Router};
 use std::net::SocketAddr;
-
-
+use tower_http::trace::TraceLayer;
+use tracing::Level;
+use tracing_subscriber::{filter, layer::SubscriberExt, util::SubscriberInitExt};
 
 #[tokio::main]
 async fn main() {
     // let cors = CorsLayer::new().allow_origin(Any);
 
+    // Add debug logging
+    let filter = filter::Targets::new()
+        .with_target("tower_http::trace::on_response", Level::TRACE)
+        .with_target("tower_http::trace::on_request", Level::TRACE)
+        .with_target("tower_http::trace::make_span", Level::DEBUG)
+        .with_default(Level::INFO);
+
+    let tracing_layer = tracing_subscriber::fmt::layer();
+
+    tracing_subscriber::registry()
+        .with(tracing_layer)
+        .with(filter)
+        .init();
+
     let app = Router::new()
         .route("/", get(root))
         .nest("/auth", auth::auth_router().await)
-        .route("/items", get(get_items).post(post_items));
+        .route("/items", get(get_items).post(post_items))
+        .layer(TraceLayer::new_for_http());
         // .route("/people", get(get_people))
         // .layer(cors);
 
@@ -29,26 +43,4 @@ async fn main() {
 
 async fn root() -> &'static str {
     "Hello, World!"
-}
-
-async fn get_people() -> impl IntoResponse {
-    let people = vec![
-        Person {
-            name: String::from("Person A"),
-            age: 36,
-            favourite_food: Some(String::from("Pizza")),
-        },
-        Person {
-            name: String::from("Person B"),
-            age: 5,
-            favourite_food: Some(String::from("Broccoli")),
-        },
-        Person {
-            name: String::from("Person C"),
-            age: 100,
-            favourite_food: None,
-        },
-    ];
-
-    (StatusCode::OK, Json(people))
 }

@@ -1,11 +1,13 @@
 use async_trait::async_trait;
-use axum::{http::Method, routing::get, Router};
+use axum::{http::Method, routing::{get, post}, Router};
 use axum_session::{SessionConfig, SessionLayer, SessionStore};
 use axum_session_auth::*;
+use login::*;
 use serde::{Deserialize, Serialize};
-use std::hash::RandomState;
 use std::sync::Arc;
 use std::collections::HashSet;
+
+mod login;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct User {
@@ -14,26 +16,6 @@ pub struct User {
     pub username: String,
     pub permissions: HashSet<String>,
 }
-
-struct TestUser {
-    pub username: &'static str,
-    pub password: &'static str,
-}
-
-const USERS: &'static [TestUser] = &[
-    TestUser{
-        username: "Olle",
-        password: "sus",
-    },
-    TestUser{
-        username: "admin",
-        password: "admin",
-    },
-    TestUser{
-        username: "Viggo",
-        password: "test",
-    }
-];
 
 impl Default for User {
     fn default() -> Self {
@@ -113,7 +95,10 @@ pub async fn auth_router() -> Router {
     let app = Router::new()
         .route("/", get(greet))
         .route("/greet", get(greet))
-        .route("/login", get(login))
+
+        .route("/login", post(handle_login))
+        .route("/logout", get(handle_logout))
+        
         .route("/perm", get(perm))
         .layer(
             AuthSessionLayer::<User, i64, SessionNullPool, NullPool>::new(Some(nullpool))
@@ -131,10 +116,6 @@ async fn greet(auth: AuthSession<User, i64, SessionNullPool, NullPool>) -> Strin
     )
 }
 
-async fn login(auth: AuthSession<User, i64, SessionNullPool, NullPool>) -> String {
-    auth.login_user(2);
-    "You are logged in as a User please try /perm to check permissions".to_owned()
-}
 
 async fn perm(method: Method, auth: AuthSession<User, i64, SessionNullPool, NullPool>) -> String {
     let current_user = auth.current_user.clone().unwrap_or_default();
