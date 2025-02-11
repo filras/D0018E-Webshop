@@ -3,6 +3,7 @@ use axum::{http::Method, routing::get, Router};
 use axum_session::{SessionConfig, SessionLayer, SessionStore};
 use axum_session_auth::*;
 use serde::{Deserialize, Serialize};
+use std::hash::RandomState;
 use std::sync::Arc;
 use std::collections::HashSet;
 
@@ -13,6 +14,26 @@ pub struct User {
     pub username: String,
     pub permissions: HashSet<String>,
 }
+
+struct TestUser {
+    pub username: &'static str,
+    pub password: &'static str,
+}
+
+const USERS: &'static [TestUser] = &[
+    TestUser{
+        username: "Olle",
+        password: "sus",
+    },
+    TestUser{
+        username: "admin",
+        password: "admin",
+    },
+    TestUser{
+        username: "Viggo",
+        password: "test",
+    }
+];
 
 impl Default for User {
     fn default() -> Self {
@@ -71,7 +92,7 @@ impl HasPermission<NullPool> for User {
     }
 }
 
-async fn authRouter() -> Router {
+pub async fn auth_router() -> Router {
     let pool = SessionNullPool;
 
     //This Defaults as normal Cookies.

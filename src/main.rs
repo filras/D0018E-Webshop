@@ -15,6 +15,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/", get(root))
+        .nest("/auth", auth::auth_router().await)
         .route("/items", get(get_items).post(post_items));
         // .route("/people", get(get_people))
         // .layer(cors);
