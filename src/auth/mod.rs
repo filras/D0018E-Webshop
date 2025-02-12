@@ -1,152 +1,29 @@
-use async_trait::async_trait;
-use axum::{http::Method, routing::{get, post}, Router};
-use axum_session::{SessionConfig, SessionLayer, SessionStore};
-use axum_session_auth::*;
-use login::*;
-use serde::{Deserialize, Serialize};
-use std::sync::Arc;
-use std::collections::HashSet;
+use std::sync::OnceLock;
 
-mod login;
+use tower_cookies::{Cookie, Cookies, Key};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct User {
-    pub id: i32,
-    pub anonymous: bool,
-    pub username: String,
-    pub permissions: HashSet<String>,
+pub mod middleware;
+pub mod routes;
+
+pub const AUTH_TOKEN: &str = "auth-token";
+
+pub const COOKIE_NAME: &str = "AUTH_TOKEN";
+
+pub static KEY: OnceLock<Key> = OnceLock::new();
+
+pub async fn hander(cookies: Cookies) -> String {
+  let key = KEY.get();
+  let private_cookies = cookies.private(key.unwrap());
+
+  let visited = private_cookies
+      .get(COOKIE_NAME)
+      .and_then(|c| c.value().parse().ok())
+      .unwrap_or(0);
+  if visited > 10 {
+      cookies.remove(Cookie::new(COOKIE_NAME, ""));
+      "Counter has been reset".into()
+  } else {
+      private_cookies.add(Cookie::new(COOKIE_NAME, (visited + 1).to_string()));
+      format!("You've been here {} times before", visited)
+  }
 }
-
-impl Default for User {
-    fn default() -> Self {
-        let mut permissions = HashSet::new();
-
-        permissions.insert("Category::View".to_owned());
-
-        Self {
-            id: 1,
-            anonymous: true,
-            username: "Guest".into(),
-            permissions,
-        }
-    }
-}
-
-// We place our Type within a Arc<> so we can send it across async threads.
-type NullPool = Arc<Option<()>>;
-
-#[async_trait]
-impl Authentication<User, i64, NullPool> for User {
-    async fn load_user(userid: i64, _pool: Option<&NullPool>) -> Result<User, anyhow::Error> {
-        if userid == 1 {
-            Ok(User::default())
-        } else {
-            let mut permissions = HashSet::new();
-
-            permissions.insert("Category::View".to_owned());
-
-            Ok(User {
-                id: 2,
-                anonymous: false,
-                username: "Test".to_owned(),
-                permissions,
-            })
-        }
-    }
-
-    fn is_authenticated(&self) -> bool {
-        !self.anonymous
-    }
-
-    fn is_active(&self) -> bool {
-        !self.anonymous
-    }
-
-    fn is_anonymous(&self) -> bool {
-        self.anonymous
-    }
-}
-
-#[async_trait]
-impl HasPermission<NullPool> for User {
-    async fn has(&self, perm: &str, _pool: &Option<&NullPool>) -> bool {
-        self.permissions.contains(perm)
-    }
-}
-
-pub async fn auth_router() -> Router {
-    let pool = SessionNullPool;
-
-    //This Defaults as normal Cookies.
-    //To enable Private cookies for integrity, and authenticity please check the next Example.
-    let session_config = SessionConfig::default().with_table_name("test_table");
-    let auth_config = AuthConfig::<i64>::default().with_anonymous_user_id(Some(1));
-
-    // create SessionStore and initiate the database tables
-    let session_store =
-        SessionStore::<SessionNullPool>::new(Some(pool.clone().into()), session_config)
-            .await
-            .unwrap();
-
-    // We create are NullPool here just for Sessions Auth.
-    let nullpool = Arc::new(Option::None);
-
-    // build our application with some routes
-    let app = Router::new()
-        .route("/", get(greet))
-        .route("/greet", get(greet))
-
-        .route("/login", post(handle_login))
-        .route("/logout", get(handle_logout))
-        
-        .route("/perm", get(perm))
-        .layer(
-            AuthSessionLayer::<User, i64, SessionNullPool, NullPool>::new(Some(nullpool))
-                .with_config(auth_config),
-        )
-        .layer(SessionLayer::new(session_store));
-
-    app
-}
-
-async fn greet(auth: AuthSession<User, i64, SessionNullPool, NullPool>) -> String {
-    format!(
-        "Hello {}, Try logging in via /login or testing permissions via /perm",
-        auth.current_user.unwrap().username
-    )
-}
-
-
-async fn perm(method: Method, auth: AuthSession<User, i64, SessionNullPool, NullPool>) -> String {
-    let current_user = auth.current_user.clone().unwrap_or_default();
-
-    //lets check permissions only and not worry about if they are anon or not
-    if !Auth::<User, i64, NullPool>::build([Method::GET], false)
-        .requires(Rights::any([
-            Rights::permission("Category::View"),
-            Rights::permission("Admin::View"),
-        ]))
-        .validate(&current_user, &method, None)
-        .await
-    {
-        return format!(
-            "User {}, Does not have permissions needed to view this page please login",
-            current_user.username
-        );
-    }
-
-    format!(
-        "User has Permissions needed. Here are the Users permissions: {:?}",
-        current_user.permissions
-    )
-}
-
-// async fn connect_to_database() -> SqlitePool {
-//     let connect_opts = SqliteConnectOptions::from_str("sqlite::memory:").unwrap();
-
-//     SqlitePoolOptions::new()
-//         .max_connections(5)
-//         .connect_with(connect_opts)
-//         .await
-//         .unwrap()
-// }
