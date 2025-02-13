@@ -31,10 +31,6 @@ pub async fn mw_ctx_resolver(
 	let key = KEY.get();
 	let private_cookies = cookies.private(key.unwrap());
 
-	if private_cookies.get(COOKIE_NAME).is_some() {
-			println!("yay we have a cookie!");
-	}
-
 	// Compute cookie value
 	let result_ctx = match private_cookies.get(COOKIE_NAME)
 		.ok_or(Error::AuthFailNoAuthTokenCookie)

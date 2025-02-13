@@ -11,6 +11,7 @@ use crate::ctx::Ctx;
 
 use super::{COOKIE_NAME, KEY};
 
+// TEMP
 struct TestUser {
     pub username: &'static str,
     pub password: &'static str,
@@ -57,9 +58,6 @@ async fn handle_login(
     // TEMP: Search through test users to find the one with the right user/pass combo
     for test_user in USERS {
         if login.username == test_user.username && login.password == test_user.password {
-            // auth.login_user(test_user.id);
-            println!("yay we found something");
-            // println!("{}", ctx.user_id());
             found_user = true;
             user = Some(test_user);
         }
