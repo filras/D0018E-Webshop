@@ -1,16 +1,12 @@
 use crate::ctx::Ctx;
-// use crate::model::ModelController;
-use core;
 use crate::auth::{AUTH_TOKEN, COOKIE_NAME, KEY};
 use crate::{Error, Result};
-use async_trait::async_trait;
 use axum::body::Body;
 use axum::extract::{FromRequestParts, State};
 use axum::http::request::Parts;
 use axum::http::Request;
 use axum::middleware::Next;
 use axum::response::Response;
-use lazy_regex::regex_captures;
 use tower_cookies::{Cookie, Cookies};
 
 pub async fn mw_require_auth(
