@@ -1,6 +1,6 @@
 use std::sync::OnceLock;
 
-use tower_cookies::{Cookie, Cookies, Key};
+use tower_cookies::Key;
 
 pub mod middleware;
 pub mod routes;

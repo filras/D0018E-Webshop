@@ -1,11 +1,15 @@
-use axum::{routing::{get, post}, Json, Router};
-use axum_session_auth::*;
+use axum::{
+    Json, Router,
+    http::StatusCode,
+    response::IntoResponse,
+    routing::{get, post},
+};
 use serde::Deserialize;
 use tower_cookies::{Cookie, Cookies};
 
-use crate::ctx::{self, Ctx};
+use crate::ctx::Ctx;
 
-use super::{AUTH_TOKEN, COOKIE_NAME, KEY};
+use super::{COOKIE_NAME, KEY};
 
 struct TestUser {
     pub username: &'static str,
@@ -44,11 +48,9 @@ pub fn routes() -> Router {
 }
 
 async fn handle_login(
-    // auth: AuthSession<User, i64, SessionNullPool, NullPool>,
-    // ctx: Ctx,
     cookies: Cookies,
     login: Json<Login>,
-) -> String {
+) -> impl IntoResponse {
     let mut found_user = false;
     let mut user: Option<&TestUser> = None;
 
@@ -63,7 +65,7 @@ async fn handle_login(
         }
     }
 
-    if !found_user { return "bad skibidi".to_owned() };
+    if !found_user { return (StatusCode::UNAUTHORIZED, "Unauthorized").into_response() };
 
     // Create cookie
 	let key = KEY.get();
@@ -77,12 +79,13 @@ async fn handle_login(
     }
 
 
-    "Logged in".to_owned()
+    "Logged in".into_response()
 }
 
 async fn handle_logout(
-    // auth: AuthSession<User, i64, SessionNullPool, NullPool>
-) -> String {
-    // auth.logout_user();
-    "Logged out".to_owned()
+    _ctx: Ctx, // Require context, cannot log out if not logged in
+    cookies: Cookies,
+) -> impl IntoResponse {
+    cookies.private(KEY.get().unwrap()).remove(Cookie::build(COOKIE_NAME).path("/").into());
+    "Logged out".into_response()
 }

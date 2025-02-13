@@ -1,12 +1,14 @@
 use crate::ctx::Ctx;
 use crate::auth::{AUTH_TOKEN, COOKIE_NAME, KEY};
 use crate::{Error, Result};
-use axum::body::Body;
-use axum::extract::{FromRequestParts, State};
-use axum::http::request::Parts;
-use axum::http::Request;
-use axum::middleware::Next;
-use axum::response::Response;
+use axum::{
+	body::Body,
+	extract::FromRequestParts,
+	http::request::Parts,
+	http::Request,
+	middleware::Next,
+	response::Response,
+};
 use tower_cookies::{Cookie, Cookies};
 
 pub async fn mw_require_auth(
@@ -22,7 +24,6 @@ pub async fn mw_require_auth(
 }
 
 pub async fn mw_ctx_resolver(
-	// _mc: State<ModelController>,
 	cookies: Cookies,
 	mut req: Request<Body>,
 	next: Next,
