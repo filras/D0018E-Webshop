@@ -1,5 +1,5 @@
 use crate::ctx::Ctx;
-use crate::auth::{AUTH_TOKEN, COOKIE_NAME, KEY};
+use crate::auth::{COOKIE_NAME, KEY};
 use crate::{Error, Result};
 use axum::{
 	body::Body,
@@ -11,25 +11,23 @@ use axum::{
 };
 use tower_cookies::{Cookie, Cookies};
 
+// Middleware to force ctx (auth) for all paths under a router
 pub async fn mw_require_auth(
 	ctx: Result<Ctx>,
 	req: Request<Body>,
 	next: Next,
 ) -> Result<Response> {
-	println!("->> {:<12} - mw_require_auth - {ctx:?}", "MIDDLEWARE");
-
 	ctx?;
-
 	Ok(next.run(req).await)
 }
 
+// Middleware to perform context (Ctx) resolution from cookies
 pub async fn mw_ctx_resolver(
 	cookies: Cookies,
 	mut req: Request<Body>,
 	next: Next,
 ) -> Result<Response> {
-	println!("->> {:<12} - mw_ctx_resolver", "MIDDLEWARE");
-
+	// Create private cookie jar from global static KEY to validate cookies
 	let key = KEY.get();
 	let private_cookies = cookies.private(key.unwrap());
 
@@ -42,10 +40,7 @@ pub async fn mw_ctx_resolver(
 		.ok_or(Error::AuthFailNoAuthTokenCookie)
 		.and_then(parse_token)
 	{
-		Ok(user_id) => {
-			// TODO: Token components validations.
-			Ok(Ctx::new(user_id))
-		}
+		Ok(user_id) => Ok(Ctx::new(user_id)),
 		Err(e) => Err(e),
 	};
 	
@@ -53,21 +48,19 @@ pub async fn mw_ctx_resolver(
 	if result_ctx.is_err()
 		&& !matches!(result_ctx, Err(Error::AuthFailNoAuthTokenCookie))
 	{
-		cookies.remove(Cookie::from(AUTH_TOKEN))
+		private_cookies.remove(Cookie::build(COOKIE_NAME).path("/").into());
 	}
 
-	// Store the ctx_result in the request extension.
+	// Store the ctx as a request extension
 	req.extensions_mut().insert(result_ctx);
 
 	Ok(next.run(req).await)
 }
 
-// region:    --- Ctx Extractor
 impl<S: Send + Sync> FromRequestParts<S> for Ctx {
 	type Rejection = Error;
 
 	async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self> {
-		// println!("->> {:<12} - Ctx", "EXTRACTOR");
 
 		parts
 			.extensions
@@ -77,10 +70,7 @@ impl<S: Send + Sync> FromRequestParts<S> for Ctx {
 	}
 }
 
-// endregion: --- Ctx Extractor
-
-/// Parse a token of format `user-[user-id].[expiration].[signature]`
-/// Returns (user_id, expiration, signature)
+// Parse userid from token
 fn parse_token(token: Cookie) -> Result<u64> {
 	let uid = token.value().parse::<u64>();
 

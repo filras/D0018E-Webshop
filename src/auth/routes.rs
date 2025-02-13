@@ -67,9 +67,9 @@ async fn handle_login(
 
     if !found_user { return (StatusCode::UNAUTHORIZED, "Unauthorized").into_response() };
 
-    // Create cookie
+    // Create private cookie jar from global static KEY to validate cookies
 	let key = KEY.get();
-    let private_cookies = cookies.private(key.unwrap());
+	let private_cookies = cookies.private(key.unwrap());
 
     if private_cookies.get(COOKIE_NAME).is_none() {
         let mut cookie = Cookie::new(COOKIE_NAME, user.unwrap().id.to_string());
@@ -86,6 +86,11 @@ async fn handle_logout(
     _ctx: Ctx, // Require context, cannot log out if not logged in
     cookies: Cookies,
 ) -> impl IntoResponse {
-    cookies.private(KEY.get().unwrap()).remove(Cookie::build(COOKIE_NAME).path("/").into());
+    // Create private cookie jar from global static KEY to validate cookies
+	let key = KEY.get();
+	let private_cookies = cookies.private(key.unwrap());
+    // Remove cookie
+    private_cookies.remove(Cookie::build(COOKIE_NAME).path("/").into());
+
     "Logged out".into_response()
 }
