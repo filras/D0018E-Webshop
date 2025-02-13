@@ -28,7 +28,7 @@ fn default_per_page () -> usize {
     10
 }
 #[derive(Debug, Deserialize)]
-pub struct Pagination {
+struct Pagination {
     #[serde(default = "default_page")]
     page: usize,
     #[serde(default = "default_per_page")]
@@ -51,14 +51,12 @@ async fn read_json () -> Vec<Item>{
     return items
 
 }
+
 // routes for api
-//async fn main(){
-
-//let api = Router::new()
-//   .route("/items", get(get_items).post(post_items));
-
-
-//}
+pub fn routes() -> Router {
+    Router::new()
+        .route("/items", get(get_items))
+}
 
 async fn paginate_vec(v: Vec<Item>, page: usize, per_page: usize) -> Vec<Item>{
    let start = (page-1) * per_page;
@@ -73,14 +71,14 @@ async fn paginate_vec(v: Vec<Item>, page: usize, per_page: usize) -> Vec<Item>{
 
 }
 
-pub async fn get_items(pagination: Query<Pagination>) -> impl IntoResponse { 
+async fn get_items(pagination: Query<Pagination>) -> impl IntoResponse { 
     let pagination: Pagination = pagination.0;
     let items:Vec<Item> = read_json().await;
     let result:Vec<Item> = paginate_vec(items, pagination.page, pagination.per_page).await;
     (StatusCode::OK, Json(result))        
 }
 
-pub async fn post_items(data: Json<Item>) -> impl IntoResponse {
+async fn post_items(data: Json<Item>) -> impl IntoResponse {
     let rcv_item: Item = data.0;
     println! ("Recieved Item {:?}", rcv_item);
     write_json(rcv_item).await;

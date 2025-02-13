@@ -19,14 +19,15 @@ mod ctx;
 mod error;
 mod model;
 mod auth;
+mod api;
 
 #[tokio::main]
 async fn main() -> Result<()> {
 	// Initialize ModelController.
 	let mc = ModelController::new().await?;
 
-	// let routes_apis = web::routes_tickets::routes(mc.clone())
-	// 	.route_layer(middleware::from_fn(web::mw_auth::mw_require_auth));
+	let routes_apis = api::routes()
+		.route_layer(middleware::from_fn(auth::middleware::mw_require_auth));
 
     // Generate cryptographic key for cookies
     let _ = KEY.set(Key::try_generate().unwrap_or(Key::from(b"THISISANUNSAFEKEY_7m893Peh3dFnNhk0o1bOXPHbG7J88GIxiei4x35nkGr5HPr/+sEFMMHI9jw3ehL4ERaRAtrXLN+thqRXmEz+Lw")));
@@ -34,7 +35,7 @@ async fn main() -> Result<()> {
 	let routes_all = Router::new()
 		// .merge(routes_hello())
 		.merge(auth::routes::routes())
-		// .nest("/api", routes_apis)
+		.nest("/api", routes_apis)
 		// .layer(middleware::map_response(main_response_mapper))
 		.layer(middleware::from_fn_with_state(
 			mc.clone(),

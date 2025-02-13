@@ -70,7 +70,10 @@ async fn handle_login(
     let private_cookies = cookies.private(key.unwrap());
 
     if private_cookies.get(COOKIE_NAME).is_none() {
-        private_cookies.add(Cookie::new(COOKIE_NAME, user.unwrap().id.to_string()));
+        let mut cookie = Cookie::new(COOKIE_NAME, user.unwrap().id.to_string());
+        cookie.set_http_only(true);
+        cookie.set_path("/");
+        private_cookies.add(cookie);
     }
 
 

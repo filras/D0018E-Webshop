@@ -1,7 +1,7 @@
 use crate::ctx::Ctx;
 // use crate::model::ModelController;
 use core;
-use crate::auth::AUTH_TOKEN;
+use crate::auth::{AUTH_TOKEN, COOKIE_NAME, KEY};
 use crate::{Error, Result};
 use async_trait::async_trait;
 use axum::body::Body;
@@ -33,20 +33,25 @@ pub async fn mw_ctx_resolver(
 ) -> Result<Response> {
 	println!("->> {:<12} - mw_ctx_resolver", "MIDDLEWARE");
 
-	let auth_token = cookies.get(AUTH_TOKEN).map(|c| c.value().to_string());
+	let key = KEY.get();
+	let private_cookies = cookies.private(key.unwrap());
 
-	// Compute Result<Ctx>.
-	let result_ctx = match auth_token
+	if private_cookies.get(COOKIE_NAME).is_some() {
+			println!("yay we have a cookie!");
+	}
+
+	// Compute cookie value
+	let result_ctx = match private_cookies.get(COOKIE_NAME)
 		.ok_or(Error::AuthFailNoAuthTokenCookie)
 		.and_then(parse_token)
 	{
-		Ok((user_id, _exp, _sign)) => {
+		Ok(user_id) => {
 			// TODO: Token components validations.
 			Ok(Ctx::new(user_id))
 		}
 		Err(e) => Err(e),
 	};
-
+	
 	// Remove the cookie if something went wrong other than NoAuthTokenCookie.
 	if result_ctx.is_err()
 		&& !matches!(result_ctx, Err(Error::AuthFailNoAuthTokenCookie))
@@ -79,16 +84,12 @@ impl<S: Send + Sync> FromRequestParts<S> for Ctx {
 
 /// Parse a token of format `user-[user-id].[expiration].[signature]`
 /// Returns (user_id, expiration, signature)
-fn parse_token(token: String) -> Result<(u64, String, String)> {
-	let (_whole, user_id, exp, sign) = regex_captures!(
-		r#"^user-(\d+)\.(.+)\.(.+)"#, // a literal regex
-		&token
-	)
-	.ok_or(Error::AuthFailTokenWrongFormat)?;
+fn parse_token(token: Cookie) -> Result<u64> {
+	let uid = token.value().parse::<u64>();
 
-	let user_id: u64 = user_id
-		.parse()
-		.map_err(|_| Error::AuthFailTokenWrongFormat)?;
+	if uid.is_err() {
+		return Err(Error::AuthFailTokenWrongFormat);
+	}
 
-	Ok((user_id, exp.to_string(), sign.to_string()))
+	Ok(uid.unwrap())
 }
