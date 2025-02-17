@@ -3,9 +3,9 @@ pub use self::error::{Error, Result};
 use auth::KEY;
 use axum::{
     middleware, Router,
-    routing::get_service,
+    response::{Html, IntoResponse},
 };
-use std::net::SocketAddr;
+use std::{fs, net::SocketAddr, path::PathBuf};
 use tower_cookies::{Key, CookieManagerLayer};
 use tower_http::services::ServeDir;
 
@@ -23,9 +23,10 @@ async fn main() -> Result<()> {
 	let routes_all = Router::new()
 		.nest("/auth", auth::routes::routes())
 		.nest("/api", api::routes().route_layer(middleware::from_fn(auth::middleware::mw_require_auth))) // Get API router and add middleware to require auth
+        .nest_service("/assets", ServeDir::new("./frontend/dist/assets")) // Serve static files for frontend
 		.layer(middleware::from_fn(auth::middleware::mw_ctx_resolver))
 		.layer(CookieManagerLayer::new())
-		.fallback_service(get_service(ServeDir::new("./frontend/dist"))); // Serve static files for frontend
+		.fallback(serve_webpage);
 
     // Create TCP listener
 	let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
@@ -38,4 +39,15 @@ async fn main() -> Result<()> {
         .unwrap();
 
     Ok(())
+}
+
+// Serve index.html as a fallback for all other routes, since react router will handle frontend routing paths
+async fn serve_webpage() -> impl IntoResponse {
+    // Read index.html file and return it as HTML, otherwise return a simple error page
+    // Will return error page if the frontend hasn't been built! (see README for instructions)
+    let index_path = PathBuf::from("./frontend/dist/index.html");
+    match fs::read_to_string(index_path) {
+        Ok(index_content) => Html(index_content),
+        Err(err) => Html(format!("<h1>Error loading homepage</h1><p>{}</p>", err.to_string()).to_owned()),
+    }
 }
