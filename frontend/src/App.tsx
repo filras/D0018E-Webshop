@@ -23,7 +23,7 @@ function App() {
   return (
     <>
       <div>
-        <a href="http://localhost:5173/" target="_blank">
+        <a href="/login">
           <img src={flygplan} className="logo" alt="flygplan" />
         </a>
         <a href="https://hianime.to/" target="_blank">
