@@ -53,12 +53,11 @@ async fn read_json() -> Vec<Item> {
 }
 
 // routes for api
-//async fn main(){
 
-//let api = Router::new()
-//   .route("/items", get(get_items).post(post_items));
-
-//}
+pub fn routes() -> Router {
+    Router::new()
+        .route("/items", get(get_items))
+}
 
 async fn paginate_vec(v: Vec<Item>, page: usize, per_page: usize) -> Vec<Item> {
     let start = (page - 1) * per_page;
