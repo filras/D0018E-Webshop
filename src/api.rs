@@ -13,6 +13,8 @@ use serde::Serialize;
 use serde_json::to_writer_pretty;
 use std::fs::File;
 use std::path::Path;
+use serde::Deserialize;
+use serde_json::to_writer_pretty;
 use D0018E_Webshop::*;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -32,7 +34,7 @@ fn default_per_page() -> usize {
     10
 }
 #[derive(Debug, Deserialize)]
-pub struct Pagination {
+struct Pagination {
     #[serde(default = "default_page")]
     page: usize,
     #[serde(default = "default_per_page")]
@@ -51,13 +53,12 @@ async fn read_json() -> Vec<Item> {
     let items: Vec<Item> = serde_json::from_reader(file).expect("error while parsing");
     return items;
 }
+
 // routes for api
-//async fn main(){
-
-//let api = Router::new()
-//   .route("/items", get(get_items).post(post_items));
-
-//}
+pub fn routes() -> Router {
+    Router::new()
+        .route("/items", get(get_items))
+}
 
 async fn paginate_vec(v: Vec<Item>, page: usize, per_page: usize) -> Vec<Item> {
     let start = (page - 1) * per_page;
@@ -82,7 +83,7 @@ pub async fn get_items(pagination: Query<Pagination>) -> impl IntoResponse {
     //  (StatusCode::OK, Json(results))
 }
 
-pub async fn post_items(data: Json<Item>) -> impl IntoResponse {
+async fn post_items(data: Json<Item>) -> impl IntoResponse {
     let rcv_item: Item = data.0;
     println!("Recieved Item {:?}", rcv_item);
     write_json(rcv_item).await;
