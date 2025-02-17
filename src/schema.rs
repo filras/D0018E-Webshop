@@ -12,3 +12,34 @@ diesel::table! {
         discounted_price -> Nullable<Integer>,
     }
 }
+
+diesel::table! {
+    users (id) {
+        id -> Integer,
+        #[max_length = 255]
+        username -> Varchar,
+        #[max_length = 255]
+        password_hash -> Varchar,
+        #[max_length = 255]
+        firstname -> Varchar,
+        #[max_length = 255]
+        surname -> Varchar,
+        #[max_length = 255]
+        email -> Varchar,
+        #[max_length = 255]
+        role -> Varchar,
+        #[max_length = 255]
+        address -> Nullable<Varchar>,
+        #[max_length = 255]
+        zipcode -> Nullable<Varchar>,
+        #[max_length = 255]
+        co -> Nullable<Varchar>,
+        #[max_length = 255]
+        country -> Nullable<Varchar>,
+    }
+}
+
+diesel::allow_tables_to_appear_in_same_query!(
+    items,
+    users,
+);
