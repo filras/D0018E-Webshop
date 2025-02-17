@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
 import json from "./assets/data.json"
+import flygplan from "./assets/flygplan.png"
+import TKL from "./assets/TKL.png"
 
-interface Props{text: string, color: string}
+
 
 interface Product{
       id: number,
@@ -16,69 +15,52 @@ interface Product{
       average_rating?: number
 }
 
-function Test({text, color}: Props){
-  return (
-    <div style={{backgroundColor: color}}>
-      {text}
-    </div>
-  )
-}
-
-const arr = ["Adam", "Viggo", "Kalix", "Balto", "", "", ""];
-
-function showInfo(is_visable: Boolean, value: Product) {
-  if(is_visable = true)
-  value.description
-}
 
 
 
 
 function App() {
-  const [count, setCount] = useState(0)
   return (
     <>
       <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
+        <a href="http://localhost:5173/" target="_blank">
+          <img src={flygplan} className="logo" alt="flygplan" />
         </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
+        <a href="https://hianime.to/" target="_blank">
+          <img src={TKL} className="logo tkl" alt="tkl logo" />
         </a>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+
+      <h1>
+        Airplane Parts & Shieet</h1>
+      <div className="card">   
       </div>
+
       <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
+        Click on the Airplane and Mutter logos to learn more
       </p>
-        <Test text={"The Greatest Dev-team to ever duolingo Rust"} color={"Black"}/>
-      <p>
-        {arr.map(value=><Test text={value} color={value==="Bengt"? "Green": "Red"}/>)}
-        </p>
+        <h2>
+          The greatest dev-team to ever duolingo rust!
+        </h2>
+      <h3 className="read-the-docs">
+        Adam, Kalix, Viggo, Balto 
+        </h3>
       <p> 
 
         {
           json.map((value: Product) =>(
             <div>
               <button> 
-                <div  
+                <div
                     onClick={() => {
   
                       document.getElementById(value.id.toString())?.classList.toggle("hidden")      
                       
                     } }
-                    key={(value.id)}>{value.title}
+                    key={(value.id)}>{value.title}<br></br>{value.price}
 
                   <div id={(value.id.toString())} className="hidden">
-                  Description: {value.description}<br></br>
-                  Price: {value.price}<br></br>
+                  Description: {value.description}<br></br>                
                   Discount: {value.discounted_price}<br></br>
                   Rating: {value.average_rating}<br></br>
                   Stock: {value.in_stock}

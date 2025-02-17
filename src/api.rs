@@ -32,7 +32,7 @@ fn default_per_page() -> usize {
     10
 }
 #[derive(Debug, Deserialize)]
-pub struct Pagination {
+struct Pagination {
     #[serde(default = "default_page")]
     page: usize,
     #[serde(default = "default_per_page")]
@@ -51,6 +51,7 @@ async fn read_json() -> Vec<Item> {
     let items: Vec<Item> = serde_json::from_reader(file).expect("error while parsing");
     return items;
 }
+
 // routes for api
 //async fn main(){
 
@@ -82,7 +83,7 @@ pub async fn get_items(pagination: Query<Pagination>) -> impl IntoResponse {
     //  (StatusCode::OK, Json(results))
 }
 
-pub async fn post_items(data: Json<Item>) -> impl IntoResponse {
+async fn post_items(data: Json<Item>) -> impl IntoResponse {
     let rcv_item: Item = data.0;
     println!("Recieved Item {:?}", rcv_item);
     write_json(rcv_item).await;
