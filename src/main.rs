@@ -16,20 +16,16 @@ mod api;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Get API router and add middleware to require auth
-	let routes_apis = api::routes()
-		.route_layer(middleware::from_fn(auth::middleware::mw_require_auth));
-
     // Generate cryptographic key for cookies
     let _ = KEY.set(Key::try_generate().unwrap_or(Key::from(b"THISISANUNSAFEKEY_7m893Peh3dFnNhk0o1bOXPHbG7J88GIxiei4x35nkGr5HPr/+sEFMMHI9jw3ehL4ERaRAtrXLN+thqRXmEz+Lw")));
 
     // Combine all routers
 	let routes_all = Router::new()
-		.merge(auth::routes::routes())
-		.nest("/api", routes_apis)
+		.nest("/auth", auth::routes::routes())
+		.nest("/api", api::routes().route_layer(middleware::from_fn(auth::middleware::mw_require_auth))) // Get API router and add middleware to require auth
 		.layer(middleware::from_fn(auth::middleware::mw_ctx_resolver))
 		.layer(CookieManagerLayer::new())
-		.fallback_service(routes_static());
+		.fallback_service(get_service(ServeDir::new("./frontend/dist"))); // Serve static files for frontend
 
     // Create TCP listener
 	let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
@@ -42,9 +38,4 @@ async fn main() -> Result<()> {
         .unwrap();
 
     Ok(())
-}
-
-// Serve static files for frontend
-fn routes_static() -> Router {
-    Router::new().nest_service("/static", get_service(ServeDir::new("./frontend/dist")))
 }

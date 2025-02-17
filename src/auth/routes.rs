@@ -44,8 +44,8 @@ pub struct Login {
 
 pub fn routes() -> Router {
     Router::new()
-        .route("/auth/login", post(handle_login))
-        .route("/auth/logout", get(handle_logout))
+        .route("/login", post(handle_login))
+        .route("/logout", get(handle_logout))
 }
 
 async fn handle_login(
