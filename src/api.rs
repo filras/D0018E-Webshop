@@ -13,8 +13,6 @@ use serde::Serialize;
 use serde_json::to_writer_pretty;
 use std::fs::File;
 use std::path::Path;
-use serde::Deserialize;
-use serde_json::to_writer_pretty;
 use D0018E_Webshop::*;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -56,8 +54,7 @@ async fn read_json() -> Vec<Item> {
 
 // routes for api
 pub fn routes() -> Router {
-    Router::new()
-        .route("/items", get(get_items))
+    Router::new().route("/items", get(get_items))
 }
 
 async fn paginate_vec(v: Vec<Item>, page: usize, per_page: usize) -> Vec<Item> {
