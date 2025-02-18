@@ -59,8 +59,8 @@ async fn get_user(uname: Query<Uname>) -> impl IntoResponse {
     (StatusCode::OK, Json(res))
 }
 
-async fn post_user(data: Json<User>) -> impl IntoResponse {
-    let rcv_user: User = data.0;
+async fn post_user(data: Json<NewUser>) -> impl IntoResponse {
+    let rcv_user: NewUser = data.0;
     use schema::users::dsl::*;
     let conn = &mut connect_to_db();
     let values = (
@@ -96,8 +96,8 @@ async fn get_items(pagination: Query<Pagination>) -> impl IntoResponse {
     (StatusCode::OK, Json(results))
 }
 
-async fn post_items(data: Json<Item>) -> impl IntoResponse {
-    let rcv_item: Item = data.0;
+async fn post_items(data: Json<NewItem>) -> impl IntoResponse {
+    let rcv_item: NewItem = data.0;
     use schema::items::dsl::*;
     let conn = &mut connect_to_db();
     let values = (
