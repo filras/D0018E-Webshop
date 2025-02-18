@@ -2,12 +2,11 @@ pub use self::error::{Error, Result};
 
 use auth::KEY;
 use axum::{
-    middleware, Router,
-    response::{Html, IntoResponse},
+    http::HeaderValue, middleware, response::{Html, IntoResponse}, Router
 };
 use std::{fs, net::SocketAddr, path::PathBuf};
 use tower_cookies::{Key, CookieManagerLayer};
-use tower_http::services::ServeDir;
+use tower_http::{cors::{Any, CorsLayer}, services::ServeDir};
 
 mod ctx;
 mod error;
@@ -20,13 +19,22 @@ async fn main() -> Result<()> {
     let _ = KEY.set(Key::try_generate().unwrap_or(Key::from(b"THISISANUNSAFEKEY_7m893Peh3dFnNhk0o1bOXPHbG7J88GIxiei4x35nkGr5HPr/+sEFMMHI9jw3ehL4ERaRAtrXLN+thqRXmEz+Lw")));
 
     // Combine all routers
-	let routes_all = Router::new()
-		.nest("/auth", auth::routes::routes())
-		.nest("/api", api::routes().route_layer(middleware::from_fn(auth::middleware::mw_require_auth))) // Get API router and add middleware to require auth
+	let mut routes_all = Router::new()
+        .nest("/auth", auth::routes::routes())
+        .nest("/api", api::routes().route_layer(middleware::from_fn(auth::middleware::mw_require_auth))) // Get API router and add middleware to require auth
         .nest_service("/assets", ServeDir::new("./frontend/dist/assets")) // Serve static files for frontend
-		.layer(middleware::from_fn(auth::middleware::mw_ctx_resolver))
-		.layer(CookieManagerLayer::new())
-		.fallback(serve_webpage);
+        .layer(middleware::from_fn(auth::middleware::mw_ctx_resolver))
+        .layer(CookieManagerLayer::new())
+        .fallback(serve_webpage);
+
+    // Permit CORS from dev server if not running in production mode
+    if cfg!(debug_assertions) {
+        println!("Running in dev mode, allowing CORS requests from React dev server at localhost:5173");
+        let cors_layer = CorsLayer::new()
+            .allow_origin("http://localhost:5173".parse::<HeaderValue>().unwrap())
+            .allow_headers(Any);
+        routes_all = routes_all.layer(cors_layer);
+    }
 
     // Create TCP listener
 	let addr = SocketAddr::from(([127, 0, 0, 1], 3000));

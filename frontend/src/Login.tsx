@@ -1,5 +1,6 @@
 import { Component } from "react";
 import flygplan from "./assets/flygplan.png"
+import API_URL from "./etc/api_url";
 
 type MyProps = {
   
@@ -50,9 +51,7 @@ class Login extends Component<MyProps, MyState> {
     
     // Pass formdata as fetch body 
     const formJson = Object.fromEntries(formData.entries());
-    fetch('/auth/login', { headers: {"Content-Type": "application/json"}, method: "post", body: JSON.stringify(formJson) });
-
-    
+    fetch(API_URL+"/auth/login", { headers: {"Content-Type": "application/json" }, method: "post", body: JSON.stringify(formJson) });
   }
 
   render() {
@@ -61,7 +60,7 @@ class Login extends Component<MyProps, MyState> {
       <div>
         <h1>Login</h1>
         <input type="text" name="username" placeholder="username" onChange={this.onUsernameInput} />
-        <input type="text" name="password" placeholder="password" onChange={this.onPasswordInput}/>
+        <input type="password" name="password" placeholder="password" onChange={this.onPasswordInput}/>
         <div>
           <a href="/">
           <img src={flygplan} className='logo' alt='flygplan'/>
