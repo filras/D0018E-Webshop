@@ -7,7 +7,9 @@ use axum::{
     routing::get,
     Router,
 };
-use diesel::{dsl::insert_into, query_builder::IncompleteInsertOrIgnoreStatement, SelectableHelper};
+use diesel::{
+    dsl::insert_into, query_builder::IncompleteInsertOrIgnoreStatement, SelectableHelper,
+};
 use diesel::{prelude::*, QueryResult};
 use schema::items::{average_rating, description, discounted_price, in_stock, title};
 use serde::Deserialize;
@@ -34,7 +36,7 @@ struct Pagination {
 // routes for api
 
 pub fn routes() -> Router {
-    Router::new().route("/items", get(get_items))
+    Router::new().route("/items", get(get_items).post(post_items))
 }
 
 pub async fn get_items(pagination: Query<Pagination>) -> impl IntoResponse {
@@ -50,23 +52,23 @@ pub async fn get_items(pagination: Query<Pagination>) -> impl IntoResponse {
     (StatusCode::OK, Json(results))
 }
 
-pub fn create_item( conn: &mut MysqlConnection, Vec) -> Item {
-    
-   }
-
-async fn post_items(conn: &mut MysqlConnection, data: Json<Item>) -> impl IntoResponse {
-     let rcv_item: Item = data.0;
-     use schema::items::dsl::*;
+async fn post_items(data: Json<Item>) -> impl IntoResponse {
+    let rcv_item: Item = data.0;
+    use schema::items::dsl::*;
+    let conn = &mut connect_to_db();
+    let values = (
+        title.eq(rcv_item.title),
+        description.eq(rcv_item.description),
+        price.eq(rcv_item.price),
+        in_stock.eq(rcv_item.in_stock),
+        average_rating.eq(rcv_item.average_rating),
+        discounted_price.eq(rcv_item.discounted_price),
+    );
 
     insert_into(items)
-        .values((
-            title.eq(rcv_item.title),
-            description.eq(rcv_item.description),
-            price.eq(rcv_item.price),
-            in_stock.eq(rcv_item.in_stock),
-            average_rating.eq(rcv_item.average_rating),
-            discounted_price.eq(rcv_item.discounted_price)))
+        .values(values)
         .execute(conn)
-        
+        .expect("Error adding item");
+
     (StatusCode::OK, "Item recieved")
 }

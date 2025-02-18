@@ -2,7 +2,9 @@ use crate::schema::*;
 use diesel::prelude::*;
 use diesel::Queryable;
 use serde::Deserialize;
-#[derive(Queryable, Insertable, Identifiable, Selectable, serde::Serialize)]
+#[derive(
+    Queryable, Insertable, Identifiable, Selectable, serde::Serialize, serde::Deserialize, Debug,
+)]
 #[diesel(table_name = items)]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
 pub struct Item {
