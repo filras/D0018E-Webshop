@@ -17,18 +17,9 @@ pub struct Item {
     pub discounted_price: Option<i32>,
 }
 
-#[derive(Insertable, serde::Deserialize)]
-#[diesel(table_name = items)]
-pub struct NewItem<'a> {
-    pub title: &'a str,
-    pub description: Option<&'a str>,
-    pub price: i32,
-    pub in_stock: i32,
-    pub average_rating: Option<f32>,
-    pub discounted_price: Option<i32>,
-}
-
-#[derive(Queryable, Selectable)]
+#[derive(
+    Queryable, Insertable, Identifiable, Selectable, serde::Serialize, serde::Deserialize, Debug,
+)]
 #[diesel(table_name = users)]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
 pub struct User {

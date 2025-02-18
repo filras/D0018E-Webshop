@@ -17,6 +17,7 @@ use serde::Serialize;
 use serde_json::to_writer_pretty;
 use std::fs::File;
 use std::path::Path;
+use tokio::task::futures::TaskLocalFuture;
 use D0018E_Webshop::*;
 
 fn default_page() -> usize {
@@ -33,13 +34,56 @@ struct Pagination {
     per_page: usize,
 }
 
+#[derive(Debug, Deserialize)]
+struct Uname {
+    username: String,
+}
+
 // routes for api
 
 pub fn routes() -> Router {
-    Router::new().route("/items", get(get_items).post(post_items))
+    Router::new()
+        .route("/items", get(get_items).post(post_items))
+        .route("/users", get(get_user).post(post_user))
 }
 
-pub async fn get_items(pagination: Query<Pagination>) -> impl IntoResponse {
+async fn get_user(uname: Query<Uname>) -> impl IntoResponse {
+    let uname: Uname = uname.0;
+    use self::schema::users::dsl::*;
+    let conn = &mut connect_to_db();
+    let res: Vec<User> = users
+        .filter(username.eq(uname.username))
+        .select(User::as_select())
+        .load::<User>(conn)
+        .expect("Error loading user");
+    (StatusCode::OK, Json(res))
+}
+
+async fn post_user(data: Json<User>) -> impl IntoResponse {
+    let rcv_user: User = data.0;
+    use schema::users::dsl::*;
+    let conn = &mut connect_to_db();
+    let values = (
+        username.eq(rcv_user.username),
+        password_hash.eq(rcv_user.password_hash),
+        firstname.eq(rcv_user.firstname),
+        surname.eq(rcv_user.surname),
+        email.eq(rcv_user.email),
+        role.eq(rcv_user.role),
+        address.eq(rcv_user.address),
+        zipcode.eq(rcv_user.zipcode),
+        co.eq(rcv_user.co),
+        country.eq(rcv_user.country),
+    );
+
+    insert_into(users)
+        .values(values)
+        .execute(conn)
+        .expect("Error adding user");
+    (StatusCode::OK, "User recieved")
+}
+
+async fn get_items(pagination: Query<Pagination>) -> impl IntoResponse {
     let pagination: Pagination = pagination.0;
     use self::schema::items::dsl::*;
     let conn = &mut connect_to_db();
