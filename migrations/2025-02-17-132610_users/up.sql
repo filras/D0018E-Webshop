@@ -9,5 +9,6 @@ CREATE TABLE users (
     address VARCHAR(255),
     zipcode VARCHAR(255),
     co VARCHAR(255),
-    country VARCHAR(255)
+    country VARCHAR(255),
+    UNIQUE (username)
 );

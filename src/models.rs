@@ -29,7 +29,14 @@ pub struct NewItem {
 }
 
 #[derive(
-    Queryable, Insertable, Identifiable, Selectable, serde::Serialize, serde::Deserialize, Debug,
+    AsChangeset,
+    Queryable,
+    Insertable,
+    Identifiable,
+    Selectable,
+    serde::Serialize,
+    serde::Deserialize,
+    Debug,
 )]
 #[diesel(table_name = users)]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
@@ -47,7 +54,7 @@ pub struct User {
     pub country: Option<String>,
 }
 
-#[derive(Insertable, serde::Serialize, serde::Deserialize)]
+#[derive(AsChangeset, Insertable, serde::Serialize, serde::Deserialize)]
 #[diesel(table_name = users)]
 pub struct NewUser {
     pub username: String,

@@ -8,15 +8,19 @@ use axum::{
     Router,
 };
 use diesel::{
-    dsl::insert_into, query_builder::IncompleteInsertOrIgnoreStatement, SelectableHelper,
+    delete, dsl::insert_into, query_builder::IncompleteInsertOrIgnoreStatement, SelectableHelper,
 };
 use diesel::{prelude::*, QueryResult};
 use schema::items::{average_rating, description, discounted_price, in_stock, title};
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::to_writer_pretty;
-use std::fs::File;
 use std::path::Path;
+use std::{
+    fs::File,
+    net::SocketAddr,
+    rc::{self, Rc},
+};
 use tokio::task::futures::TaskLocalFuture;
 use D0018E_Webshop::*;
 
@@ -44,7 +48,48 @@ struct Uname {
 pub fn routes() -> Router {
     Router::new()
         .route("/items", get(get_items).post(post_items))
-        .route("/users", get(get_user).post(post_user))
+        .route(
+            "/users",
+            get(get_user)
+                .post(post_user)
+                .delete(delete_user)
+                .put(update_user),
+        )
+}
+
+async fn update_user(uname: Query<Uname>, data: Json<NewUser>) -> impl IntoResponse {
+    let uname: Uname = uname.0;
+    let rcv_user: NewUser = data.0;
+    use self::schema::users::dsl::*;
+    let conn = &mut connect_to_db();
+    let values = (
+        username.eq(rcv_user.username),
+        password_hash.eq(rcv_user.password_hash),
+        firstname.eq(rcv_user.firstname),
+        surname.eq(rcv_user.surname),
+        email.eq(rcv_user.email),
+        role.eq(rcv_user.role),
+        address.eq(rcv_user.address),
+        zipcode.eq(rcv_user.zipcode),
+        co.eq(rcv_user.co),
+        country.eq(rcv_user.country),
+    );
+
+    diesel::update(users)
+        .filter(username.eq(uname.username))
+        .set(values)
+        .execute(conn);
+    (StatusCode::OK, "User updated")
+}
+
+async fn delete_user(uname: Query<Uname>) -> impl IntoResponse {
+    let uname: Uname = uname.0;
+    use self::schema::users::dsl::*;
+    let conn = &mut connect_to_db();
+    let old_count = users.count().first::<i64>(conn);
+    delete(users.filter(username.eq(uname.username))).execute(conn);
+    assert_eq!(old_count.map(|count| count - 1), users.count().first(conn));
+    (StatusCode::OK, "User deleted")
 }
 
 async fn get_user(uname: Query<Uname>) -> impl IntoResponse {
