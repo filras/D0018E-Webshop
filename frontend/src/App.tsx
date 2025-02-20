@@ -17,22 +17,17 @@ interface Product{
       average_rating?: number
 }
 
-function getItems(): Promise<Product[]>{
-
-    return fetch(API_URL+"/api/items") 
-    // The json boy is taken from response 
-
-    .then(res => res.json())
-    .then(res =>{
-      return res as Product[]
-    })
+async function getItems(): Promise<Product[]>{
+    const items = await fetch(API_URL+"/api/items"); 
+    return await items.json();
+    
 }
-
- let items = await getItems();
+// Asnyc await
 
 
 
 async function App() {
+  let items = await getItems();
   return (
     <>
     <head></head>
@@ -79,7 +74,7 @@ async function App() {
       <p>
        
         {
-          (await items).map((value: Product) =>(
+          items.map((value: Product) =>(
             <div>
               <img src={bird1} className="bird-logo" alt="bird-logo"/>
 
