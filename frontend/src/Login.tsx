@@ -43,6 +43,8 @@ class Login extends Component<MyProps, MyState> {
   }
 
   handleSubmit(e: any){
+    // By default, the browser will send the form data to the current URL,
+    // and refresh the page. You can override that behavior by calling below
     e.preventDefault();
 
     // Read the form data

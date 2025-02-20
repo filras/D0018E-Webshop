@@ -5,54 +5,57 @@ type MyProps = {
 };
 
 type MyState = {
-  username: string;
+  // username: string; 
+  email: string;
   userpass: string;
   firstname: string;
+  surname: string; /*
   lastname: string;
-  email: string;
   role: string;
   address?: string;
   zip?: string;
   co?: string;
-  country?: string;
+  country?: string;*/
 };
 
 class Register extends Component<MyProps, MyState> {
 
   state: MyState = {
-    username: "",
+    // username: "",
+    email: "",
     userpass: "",
     firstname:"",
-    lastname: "",
-    email: "",
+    surname: "", 
+   /* lastname: "",
     role: "",
     address: "",
     zip: "",
     co: "",
-    country: "",
+    country: "", */
   };
 
   constructor(props: MyProps) {
     super(props);
-    this.onPasswordInput = this.onPasswordInput.bind(this);
-    this.onUsernameInput = this.onUsernameInput.bind(this);
-    this.onFirstnameInput = this.onFirstnameInput.bind(this);
-    this.onLastnameInput = this.onLastnameInput.bind(this);
     this.onEmailInput = this.onEmailInput.bind(this);
+    this.onPasswordInput = this.onPasswordInput.bind(this);
+    this.onFirstnameInput = this.onFirstnameInput.bind(this);
+    this.onSurnameInput = this.onSurnameInput.bind(this);
+    /*
+    this.onLastnameInput = this.onLastnameInput.bind(this);
+    this.onUsernameInput = this.onUsernameInput.bind(this);
     this.onZipCodeInput = this.onZipCodeInput.bind(this);
     this.onCoInput = this.onCoInput.bind(this);
     this.onCountryInput = this.onCountryInput.bind(this);
     this.onAddressInput = this.onAddressInput.bind(this);
     this.onRoleInput = this.onRoleInput.bind(this);
-    
+    */
   }
 
-  onUsernameInput(event: React.ChangeEvent<HTMLInputElement>) {
-    
+  onEmailInput(event: React.ChangeEvent<HTMLInputElement>){
     this.setState({
-      username: event.target.value,
-    });
-  };
+      email: event.target.value,
+    })
+  }
 
   onPasswordInput(event: React.ChangeEvent<HTMLInputElement>){
     this.setState({
@@ -66,17 +69,28 @@ class Register extends Component<MyProps, MyState> {
     })
   }
 
+  onSurnameInput(event: React.ChangeEvent<HTMLInputElement>){
+    this.setState({
+      surname: event.target.value,
+    })
+  }
+
+
+  /*
+
+  onUsernameInput(event: React.ChangeEvent<HTMLInputElement>) {
+    
+    this.setState({
+      username: event.target.value,
+    });
+  };
+
   onLastnameInput(event: React.ChangeEvent<HTMLInputElement>){
     this.setState({
       lastname: event.target.value,
     })
   }
 
-  onEmailInput(event: React.ChangeEvent<HTMLInputElement>){
-    this.setState({
-      email: event.target.value,
-    })
-  }
 
   onRoleInput(event: React.ChangeEvent<HTMLInputElement>){
     this.setState({
@@ -108,12 +122,16 @@ class Register extends Component<MyProps, MyState> {
     })
   }
 
+  */
+
   handleSubmit(e: any){
     e.preventDefault();
 
     // Read the form data
     const form = e.target;
     const formData = new FormData(form);
+
+    //Implement same fetch from login but fetch api from /auth/api
 
     const formJson = Object.fromEntries(formData.entries());
     console.log(formJson); //Errorhandling, remove later
@@ -125,13 +143,16 @@ class Register extends Component<MyProps, MyState> {
       <form method="post" onSubmit={this.handleSubmit}> 
       <div>
         <h1>Register Account</h1>
-        <input type="text" name="Username" placeholder="Username" onChange={this.onUsernameInput} />
+        <input type="text" name="email" placeholder="email" onChange={this.onEmailInput}/>
         <br></br>
-        <input type="text" name="Password" placeholder="Password" onChange={this.onPasswordInput}/>
+        <input type="text" name="password" placeholder="password" onChange={this.onPasswordInput}/>
         <br></br>
-        <input type="text" name="Firstname" placeholder="Firstname" onChange={this.onFirstnameInput}/>
+        <input type="text" name="firstname" placeholder="firstname" onChange={this.onFirstnameInput}/>
         <br></br>
-        <input type="text" name="Email" placeholder="Email" onChange={this.onEmailInput}/>
+        <input type="text" name="surname" placeholder="surname" onChange={this.onSurnameInput}/>
+        {/*
+        <br></br> 
+         <input type="text" name="username" placeholder="username" onChange={this.onUsernameInput} />
         <br></br>
         <input type="text" name="Role" placeholder="Role" onChange={this.onRoleInput}/>
         <br></br>
@@ -143,6 +164,7 @@ class Register extends Component<MyProps, MyState> {
         <br></br>
         <input type="text" name="Country" placeholder="Country" onChange={this.onCountryInput}/>
         <br></br>
+      */}
         <div>
         <a href="/">
         <img src={flygplan} className='logo' alt='flygplan'/>

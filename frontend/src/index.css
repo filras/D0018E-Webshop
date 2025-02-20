@@ -33,31 +33,11 @@ body main {
 }
 
 h1 {
-  font-size: 3.2em;
+  font-size: 2.0em;
   line-height: 1.1;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: 'Courier New', Courier, monospace;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-  float: left;
-  width: 250px;
-  height: 200px;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
+
 
 @media (prefers-color-scheme: light) {
   :root {
@@ -73,18 +53,28 @@ button:focus-visible {
 }
 
 
-.flex {
-  justify-content: space-between;
-  display: -webkit-box;
-  display: -moz-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: inline-flex
+
+.item1 { grid-area: header; }
+.item2 { grid-area: content; }
+.item3 { grid-area: footer; }
+
+.grid-container {
+  align-content: center;
+  display: grid;
+  flex-direction: column;
+  grid-template-areas:
+  'header header header'
+  'content content content'
+  'footer footer footer';
+  grid-gap: 10px;
+  background-color: #242424;
+  padding: 10px;
+  grid-template-columns: 0.5fr 1fr 1fr 1fr;
 }
 
-
-.Auth {
-  width: 250px;
-  height: auto;
-  justify-content: center; 
+.grid-container > div {
+  background-color: #242424;
+  padding: 5px 0;
+  font-size: 30px;
+  text-align: center;
 }
