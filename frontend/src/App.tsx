@@ -28,8 +28,7 @@ function getItems(): Promise<Product[]>{
     })
 }
 
-
-let items = getItems();
+ let items = await getItems();
 
 
 
