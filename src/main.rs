@@ -10,8 +10,8 @@ use tower_http::{cors::{Any, CorsLayer}, services::ServeDir};
 
 mod api;
 mod auth;
-mod ctx;
 mod error;
+mod db;
 
 #[tokio::main]
 async fn main() -> Result<()> {
