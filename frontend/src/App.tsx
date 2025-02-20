@@ -1,10 +1,11 @@
 import './App.css'
-import json from "./assets/data.json"
+// import json from "./assets/data.json"
 import flygplan from "./assets/flygplan.png"
 import TKL from "./assets/TKL.png"
 import LogInn from "./assets/LogInn.png"
 import bird1 from "./assets/bird1.jpg"
 import buynow from "./assets/buynow.png"
+import API_URL from "./etc/api_url";
 
 interface Product{
       id: number,
@@ -16,11 +17,23 @@ interface Product{
       average_rating?: number
 }
 
+function getItems(): Promise<Product[]>{
+
+    return fetch(API_URL+"/api/items") 
+    // The json boy is taken from response 
+
+    .then(res => res.json())
+    .then(res =>{
+      return res as Product[]
+    })
+}
+
+
+let items = getItems();
 
 
 
-
-function App() {
+async function App() {
   return (
     <>
     <head></head>
@@ -67,14 +80,14 @@ function App() {
       <p>
        
         {
-          json.map((value: Product) =>(
+          (await items).map((value: Product) =>(
             <div>
               <img src={bird1} className="bird-logo" alt="bird-logo"/>
 
               <button className='card-button'> 
                 <div
                     onClick={() => {
-  
+                      
                       document.getElementById(value.id.toString())?.classList.toggle("hidden")      
                       
                     } }

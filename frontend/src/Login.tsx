@@ -54,6 +54,7 @@ class Login extends Component<MyProps, MyState> {
     // Pass formdata as fetch body 
     const formJson = Object.fromEntries(formData.entries());
     fetch(API_URL+"/auth/login", { headers: {"Content-Type": "application/json" }, method: "post", body: JSON.stringify(formJson) });
+    console.log(formJson); //Errorhandling, remove later
   }
 
   render() {
