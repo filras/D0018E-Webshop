@@ -1,4 +1,4 @@
-use self::models::*;
+use crate::db::{connect_to_db, models::*, schema::users::{address, co, country, email, firstname, password_hash, role, surname, username, zipcode}};
 #[allow(unused)]
 use axum::{
     extract::{Json, Query},
@@ -8,21 +8,12 @@ use axum::{
     Router,
 };
 use diesel::{
-    delete, dsl::insert_into, query_builder::IncompleteInsertOrIgnoreStatement, SelectableHelper,
+    delete, dsl::insert_into, SelectableHelper,
 };
-use diesel::{prelude::*, QueryResult};
-use schema::items::{average_rating, description, discounted_price, in_stock, title};
+use diesel::prelude::*;
+use crate::db::schema::items::{dsl::items, average_rating, description, discounted_price, in_stock, title, price};
+use crate::db::schema::users::{dsl::users, };
 use serde::Deserialize;
-use serde::Serialize;
-use serde_json::to_writer_pretty;
-use std::path::Path;
-use std::{
-    fs::File,
-    net::SocketAddr,
-    rc::{self, Rc},
-};
-use tokio::task::futures::TaskLocalFuture;
-use D0018E_Webshop::*;
 
 fn default_page() -> usize {
     1
@@ -60,7 +51,7 @@ pub fn routes() -> Router {
 async fn update_user(uname: Query<Uname>, data: Json<NewUser>) -> impl IntoResponse {
     let uname: Uname = uname.0;
     let rcv_user: NewUser = data.0;
-    use self::schema::users::dsl::*;
+    use crate::db::schema::users::dsl::*;
     let conn = &mut connect_to_db();
     let values = (
         username.eq(rcv_user.username),
@@ -84,7 +75,6 @@ async fn update_user(uname: Query<Uname>, data: Json<NewUser>) -> impl IntoRespo
 
 async fn delete_user(uname: Query<Uname>) -> impl IntoResponse {
     let uname: Uname = uname.0;
-    use self::schema::users::dsl::*;
     let conn = &mut connect_to_db();
     let old_count = users.count().first::<i64>(conn);
     delete(users.filter(username.eq(uname.username))).execute(conn);
@@ -94,7 +84,6 @@ async fn delete_user(uname: Query<Uname>) -> impl IntoResponse {
 
 async fn get_user(uname: Query<Uname>) -> impl IntoResponse {
     let uname: Uname = uname.0;
-    use self::schema::users::dsl::*;
     let conn = &mut connect_to_db();
     let res: Vec<User> = users
         .filter(username.eq(uname.username))
@@ -106,7 +95,6 @@ async fn get_user(uname: Query<Uname>) -> impl IntoResponse {
 
 async fn post_user(data: Json<NewUser>) -> impl IntoResponse {
     let rcv_user: NewUser = data.0;
-    use schema::users::dsl::*;
     let conn = &mut connect_to_db();
     let values = (
         username.eq(rcv_user.username),
@@ -130,7 +118,6 @@ async fn post_user(data: Json<NewUser>) -> impl IntoResponse {
 
 async fn get_items(pagination: Query<Pagination>) -> impl IntoResponse {
     let pagination: Pagination = pagination.0;
-    use self::schema::items::dsl::*;
     let conn = &mut connect_to_db();
     let results: Vec<Item> = items
         .offset(((pagination.page - 1) * pagination.per_page) as i64)
@@ -143,7 +130,6 @@ async fn get_items(pagination: Query<Pagination>) -> impl IntoResponse {
 
 async fn post_items(data: Json<NewItem>) -> impl IntoResponse {
     let rcv_item: NewItem = data.0;
-    use schema::items::dsl::*;
     let conn = &mut connect_to_db();
     let values = (
         title.eq(rcv_item.title),

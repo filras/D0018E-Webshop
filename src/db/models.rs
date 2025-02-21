@@ -1,7 +1,6 @@
-use crate::schema::*;
+use crate::db::schema::*;
 use diesel::prelude::*;
 use diesel::Queryable;
-use serde::Deserialize;
 #[derive(
     Queryable, Insertable, Identifiable, Selectable, serde::Serialize, serde::Deserialize, Debug,
 )]
