@@ -1,4 +1,3 @@
-use crate::db::{connect_to_db, models::*, schema::users::{address, co, country, email, firstname, password_hash, role, surname, username, zipcode}};
 #[allow(unused)]
 use axum::{
     extract::{Json, Query},
@@ -8,12 +7,20 @@ use axum::{
     Router,
 };
 use diesel::{
-    delete, dsl::insert_into, SelectableHelper,
+    delete, 
+    prelude::*,
+    dsl::insert_into,
 };
-use diesel::prelude::*;
-use crate::db::schema::items::{dsl::items, *};
-use crate::db::schema::users::dsl::users;
 use serde::Deserialize;
+
+use crate::db::{
+    connect_to_db,
+    models::{Item, NewItem, User, NewUser},
+    schema::{
+        items::{dsl::items, *},
+        users::{dsl::users, *},
+    }
+};
 
 fn default_page() -> usize {
     1
@@ -46,6 +53,7 @@ pub fn routes() -> Router {
                 .delete(delete_user)
                 .put(update_user),
         )
+        .route("/test", get(|| async {"Hello, world!".into_response()}))
 }
 
 async fn update_user(uname: Query<Uname>, data: Json<NewUser>) -> impl IntoResponse {
