@@ -11,8 +11,8 @@ use diesel::{
     delete, dsl::insert_into, SelectableHelper,
 };
 use diesel::prelude::*;
-use crate::db::schema::items::{dsl::items, average_rating, description, discounted_price, in_stock, title, price};
-use crate::db::schema::users::{dsl::users, };
+use crate::db::schema::items::{dsl::items, *};
+use crate::db::schema::users::dsl::users;
 use serde::Deserialize;
 
 fn default_page() -> usize {
@@ -66,31 +66,40 @@ async fn update_user(uname: Query<Uname>, data: Json<NewUser>) -> impl IntoRespo
         country.eq(rcv_user.country),
     );
 
-    diesel::update(users)
+    return match diesel::update(users)
         .filter(username.eq(uname.username))
         .set(values)
-        .execute(conn);
-    (StatusCode::OK, "User updated")
+        .execute(conn) {
+        Ok(_) => (StatusCode::OK, "User updated").into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response()
+    }
+    
 }
 
 async fn delete_user(uname: Query<Uname>) -> impl IntoResponse {
     let uname: Uname = uname.0;
     let conn = &mut connect_to_db();
     let old_count = users.count().first::<i64>(conn);
-    delete(users.filter(username.eq(uname.username))).execute(conn);
+
+    let result = delete(users.filter(username.eq(uname.username)))
+        .execute(conn);
     assert_eq!(old_count.map(|count| count - 1), users.count().first(conn));
-    (StatusCode::OK, "User deleted")
+    return match result {
+        Ok(_) => (StatusCode::OK, "User deleted").into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response()
+    }
 }
 
 async fn get_user(uname: Query<Uname>) -> impl IntoResponse {
     let uname: Uname = uname.0;
     let conn = &mut connect_to_db();
-    let res: Vec<User> = users
+    return match users
         .filter(username.eq(uname.username))
         .select(User::as_select())
-        .load::<User>(conn)
-        .expect("Error loading user");
-    (StatusCode::OK, Json(res))
+        .load::<User>(conn) {
+        Ok(res) => (StatusCode::OK, Json(res)).into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response()
+    }
 }
 
 async fn post_user(data: Json<NewUser>) -> impl IntoResponse {
@@ -109,23 +118,26 @@ async fn post_user(data: Json<NewUser>) -> impl IntoResponse {
         country.eq(rcv_user.country),
     );
 
-    insert_into(users)
+    return match insert_into(users)
         .values(values)
-        .execute(conn)
-        .expect("Error adding user");
-    (StatusCode::OK, "User recieved")
+        .execute(conn) {
+        Ok(_) => (StatusCode::OK, "User recieved").into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response()
+    }
 }
 
 async fn get_items(pagination: Query<Pagination>) -> impl IntoResponse {
     let pagination: Pagination = pagination.0;
     let conn = &mut connect_to_db();
-    let results: Vec<Item> = items
+
+    return match items
         .offset(((pagination.page - 1) * pagination.per_page) as i64)
         .limit(pagination.per_page as i64)
         .select(Item::as_select())
-        .load::<Item>(conn)
-        .expect("Error loading items");
-    (StatusCode::OK, Json(results))
+        .load::<Item>(conn) {
+            Ok(results) => (StatusCode::OK, Json(results)).into_response(),
+            Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response()
+        }
 }
 
 async fn post_items(data: Json<NewItem>) -> impl IntoResponse {
@@ -140,10 +152,10 @@ async fn post_items(data: Json<NewItem>) -> impl IntoResponse {
         discounted_price.eq(rcv_item.discounted_price),
     );
 
-    insert_into(items)
+    return match insert_into(items)
         .values(values)
-        .execute(conn)
-        .expect("Error adding item");
-
-    (StatusCode::OK, "Item recieved")
+        .execute(conn) {
+        Ok(_) => (StatusCode::OK, "Item recieved".to_string()),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
+    }
 }

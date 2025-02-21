@@ -15,10 +15,6 @@ mod db;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Get API router and add middleware to require auth
-    let routes_apis = api::routes();
-    //.route_layer(middleware::from_fn(auth::middleware::mw_require_auth));
-
     // Generate cryptographic key for cookies
     let _ = KEY.set(Key::try_generate().unwrap_or(Key::from(b"THISISANUNSAFEKEY_7m893Peh3dFnNhk0o1bOXPHbG7J88GIxiei4x35nkGr5HPr/+sEFMMHI9jw3ehL4ERaRAtrXLN+thqRXmEz+Lw")));
 
