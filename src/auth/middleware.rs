@@ -1,5 +1,4 @@
-use crate::ctx::Ctx;
-use crate::auth::{COOKIE_NAME, KEY};
+use crate::auth::{ctx::Ctx, COOKIE_NAME, KEY};
 use crate::{Error, Result};
 use axum::{
 	body::Body,

@@ -7,7 +7,7 @@ use axum::{
 use serde::Deserialize;
 use tower_cookies::{Cookie, Cookies};
 
-use crate::ctx::Ctx;
+use crate::auth::ctx::Ctx;
 
 use super::{COOKIE_NAME, KEY};
 

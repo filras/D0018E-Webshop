@@ -6,30 +6,43 @@ use axum::{
 };
 use std::{fs, net::SocketAddr, path::PathBuf};
 use tower_cookies::{Key, CookieManagerLayer};
-use tower_http::{cors::{Any, CorsLayer}, services::ServeDir};
+use tower_http::{cors::{Any, CorsLayer}, services::ServeDir, trace::{self, TraceLayer}};
+use tracing::Level;
 
 mod api;
 mod auth;
-mod ctx;
 mod error;
+mod db;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Get API router and add middleware to require auth
-    let routes_apis = api::routes();
-    //.route_layer(middleware::from_fn(auth::middleware::mw_require_auth));
+    tracing_subscriber::fmt()
+        .with_target(false)
+        .compact()
+        .init();
 
     // Generate cryptographic key for cookies
     let _ = KEY.set(Key::try_generate().unwrap_or(Key::from(b"THISISANUNSAFEKEY_7m893Peh3dFnNhk0o1bOXPHbG7J88GIxiei4x35nkGr5HPr/+sEFMMHI9jw3ehL4ERaRAtrXLN+thqRXmEz+Lw")));
 
     // Combine all routers
 	let mut routes_all = Router::new()
+        // Add routes
         .nest("/auth", auth::routes::routes())
-        .nest("/api", api::routes().route_layer(middleware::from_fn(auth::middleware::mw_require_auth))) // Get API router and add middleware to require auth
+        .nest("/api", api::routes() // Get API router and add middleware to require auth
+            .route_layer(middleware::from_fn(auth::middleware::mw_require_auth)))
         .nest_service("/assets", ServeDir::new("./frontend/dist/assets")) // Serve static files for frontend
+        .fallback(serve_webpage) // Serves the main index file for all other paths, necessary for react-router to work
+
+        // Add cookie middleware and context resolver
         .layer(middleware::from_fn(auth::middleware::mw_ctx_resolver))
         .layer(CookieManagerLayer::new())
-        .fallback(serve_webpage);
+        
+        // Add trace layer for logging
+        .layer(TraceLayer::new_for_http()
+            .make_span_with(trace::DefaultMakeSpan::new()
+                .level(Level::DEBUG))
+            .on_response(trace::DefaultOnResponse::new()
+                .level(Level::DEBUG)));
 
     // Permit CORS from dev server if not running in production mode
     if cfg!(debug_assertions) {
