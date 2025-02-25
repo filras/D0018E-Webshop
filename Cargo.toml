@@ -25,6 +25,4 @@ tracing-subscriber = { version = "0.3.16", features = ["env-filter"]}
 name = "main"
 path = "src/main.rs"
 
-[[bin]]
-name = "setup_db"
-path = "src/setup_db.rs"
+
