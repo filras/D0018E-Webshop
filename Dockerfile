@@ -1,9 +1,13 @@
 # Build backend
 FROM rust:latest AS backend-builder
-WORKDIR /usr/src/app
+# RUN apt-get update && apt-get install -y default-libmysqlclient-dev && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY Cargo.toml Cargo.lock /app/
+RUN mkdir /app/src && echo "fn main() {}" > /app/src/main.rs
+RUN cargo build --release && rm -rf /app/src
 COPY . .
-ENV DATABASE_URL=mysql://root:root@localhost/webshop
-RUN cargo install --path .
+RUN touch /app/src/main.rs && cargo build --release
+# RUN cargo install --path .
 
 # Build frontend
 FROM node:latest AS frontend-builder
@@ -14,9 +18,10 @@ COPY ./frontend .
 RUN npm run build
 
 # Run backend
-FROM debian:bullseye-slim
-# RUN apt-get update && apt-get install -y libmysqlclient && rm -rf /var/lib/apt/lists/*
-RUN apt-get update && rm -rf /var/lib/apt/lists/*
-COPY --from=frontend-builder /app/dist /usr/local/bin/app/backend/dist
-COPY --from=backend-builder /usr/local/cargo/bin/app /usr/local/bin/app
-CMD ["app"]
+FROM debian:bookworm-slim
+RUN apt-get update && apt-get install -y default-libmysqlclient-dev && rm -rf /var/lib/apt/lists/*
+# RUN apt-get update && rm -rf /var/lib/apt/lists/*
+COPY --from=frontend-builder /app/dist /srv/frontend/dist
+COPY --from=backend-builder /app/target/release/main /srv/app
+WORKDIR /srv
+CMD ["/srv/app"]
