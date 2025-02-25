@@ -1,2 +1,7 @@
+# Frontend
+frontend/node_modules
+frontend/dist
 
-node_modules
+# Main
+target
+README.md

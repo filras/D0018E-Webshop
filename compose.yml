@@ -1,0 +1,17 @@
+services:
+  database:
+    image: mariadb
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_USER: root
+      MARIADB_PASSWORD: user
+      MARIADB_DATABASE: webshop
+    ports:
+      - "3306:3306"
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "7100:5000"
