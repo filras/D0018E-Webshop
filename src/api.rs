@@ -15,7 +15,7 @@ use serde::Deserialize;
 
 use crate::db::{
     connect_to_db,
-    models::{Item, NewItem, User, NewUser},
+    models::{Item, NewItem, User},
     schema::{
         items::{dsl::items, *},
         users::{dsl::users, *},
@@ -49,40 +49,39 @@ pub fn routes() -> Router {
         .route(
             "/users",
             get(get_user)
-                .post(post_user)
                 .delete(delete_user)
-                .put(update_user),
+                // .put(update_user),
         )
         .route("/test", get(|| async {"Hello, world!".into_response()}))
 }
 
-async fn update_user(uname: Query<Uname>, data: Json<NewUser>) -> impl IntoResponse {
-    let uname: Uname = uname.0;
-    let rcv_user: NewUser = data.0;
-    use crate::db::schema::users::dsl::*;
-    let conn = &mut connect_to_db();
-    let values = (
-        username.eq(rcv_user.username),
-        password_hash.eq(rcv_user.password_hash),
-        firstname.eq(rcv_user.firstname),
-        surname.eq(rcv_user.surname),
-        email.eq(rcv_user.email),
-        role.eq(rcv_user.role),
-        address.eq(rcv_user.address),
-        zipcode.eq(rcv_user.zipcode),
-        co.eq(rcv_user.co),
-        country.eq(rcv_user.country),
-    );
+// async fn update_user(uname: Query<Uname>, data: Json<NewUser>) -> impl IntoResponse {
+//     let uname: Uname = uname.0;
+//     let rcv_user: NewUser = data.0;
+//     use crate::db::schema::users::dsl::*;
+//     let conn = &mut connect_to_db();
+//     let values = (
+//         username.eq(rcv_user.username),
+//         password_hash.eq(rcv_user.password_hash),
+//         firstname.eq(rcv_user.firstname),
+//         surname.eq(rcv_user.surname),
+//         email.eq(rcv_user.email),
+//         role.eq(rcv_user.role),
+//         address.eq(rcv_user.address),
+//         zipcode.eq(rcv_user.zipcode),
+//         co.eq(rcv_user.co),
+//         country.eq(rcv_user.country),
+//     );
 
-    return match diesel::update(users)
-        .filter(username.eq(uname.username))
-        .set(values)
-        .execute(conn) {
-        Ok(_) => (StatusCode::OK, "User updated").into_response(),
-        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response()
-    }
+//     return match diesel::update(users)
+//         .filter(username.eq(uname.username))
+//         .set(values)
+//         .execute(conn) {
+//         Ok(_) => (StatusCode::OK, "User updated").into_response(),
+//         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response()
+//     }
     
-}
+// }
 
 async fn delete_user(uname: Query<Uname>) -> impl IntoResponse {
     let uname: Uname = uname.0;
@@ -106,30 +105,6 @@ async fn get_user(uname: Query<Uname>) -> impl IntoResponse {
         .select(User::as_select())
         .load::<User>(conn) {
         Ok(res) => (StatusCode::OK, Json(res)).into_response(),
-        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response()
-    }
-}
-
-async fn post_user(data: Json<NewUser>) -> impl IntoResponse {
-    let rcv_user: NewUser = data.0;
-    let conn = &mut connect_to_db();
-    let values = (
-        username.eq(rcv_user.username),
-        password_hash.eq(rcv_user.password_hash),
-        firstname.eq(rcv_user.firstname),
-        surname.eq(rcv_user.surname),
-        email.eq(rcv_user.email),
-        role.eq(rcv_user.role),
-        address.eq(rcv_user.address),
-        zipcode.eq(rcv_user.zipcode),
-        co.eq(rcv_user.co),
-        country.eq(rcv_user.country),
-    );
-
-    return match insert_into(users)
-        .values(values)
-        .execute(conn) {
-        Ok(_) => (StatusCode::OK, "User recieved").into_response(),
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response()
     }
 }

@@ -53,17 +53,3 @@ pub struct User {
     pub country: Option<String>,
 }
 
-#[derive(AsChangeset, Insertable, serde::Serialize, serde::Deserialize)]
-#[diesel(table_name = users)]
-pub struct NewUser {
-    pub username: String,
-    pub password_hash: String,
-    pub firstname: String,
-    pub surname: String,
-    pub email: String,
-    pub role: String,
-    pub address: Option<String>,
-    pub zipcode: Option<String>,
-    pub co: Option<String>,
-    pub country: Option<String>,
-}
