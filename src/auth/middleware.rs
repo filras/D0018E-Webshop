@@ -8,8 +8,7 @@ use crate::{
 };
 use axum::{
 	body::Body,
-	extract::FromRequestParts,
-	http::{request::Parts, Request, StatusCode},
+	http::{Request, StatusCode},
 	middleware::Next,
 	response::{IntoResponse, Response},
 };
@@ -76,19 +75,6 @@ pub async fn mw_ctx_resolver(
 	}
 
 	Ok::<Response<Body>, String>(next.run(req).await).into_response()
-}
-
-impl<S: Send + Sync> FromRequestParts<S> for Ctx {
-	type Rejection = String;
-
-	async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, String> {
-		match parts
-			.extensions
-			.get::<Ctx>() {
-				Some(ctx) => Ok(ctx.clone()),
-				None => Err("Missing user ctx".to_string()),
-			}
-	}
 }
 
 // Parse userid from token
