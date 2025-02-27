@@ -1,4 +1,4 @@
-use crate::db::schema::*;
+use crate::schema::*;
 use diesel::prelude::*;
 use diesel::Queryable;
 #[derive(

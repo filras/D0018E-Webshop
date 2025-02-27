@@ -1,9 +1,9 @@
 use crate::{
 	auth::{ctx::Ctx, COOKIE_NAME, KEY},
+	schema::users::{dsl::users, *},
 	db::{
 		connect_to_db,
 		models::User,
-		schema::users::{dsl::users, *},
 	},
 };
 use axum::{

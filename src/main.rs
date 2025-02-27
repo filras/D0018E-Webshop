@@ -13,6 +13,7 @@ mod api;
 mod auth;
 mod error;
 mod db;
+pub mod schema;
 
 #[tokio::main]
 async fn main() -> Result<()> {

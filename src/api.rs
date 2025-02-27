@@ -13,12 +13,14 @@ use diesel::{
 };
 use serde::Deserialize;
 
-use crate::db::{
-    connect_to_db,
-    models::{Item, NewItem, User},
+use crate::{
     schema::{
         items::{dsl::items, *},
         users::{dsl::users, *},
+    },
+    db::{
+        connect_to_db,
+        models::{Item, NewItem, User},
     }
 };
 

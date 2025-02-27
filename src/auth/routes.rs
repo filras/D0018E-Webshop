@@ -7,12 +7,14 @@ use tower_cookies::{Cookie, Cookies};
 
 use crate::{
     auth::{self, ctx::Ctx},
+    schema::users::{dsl::users, *},
     db::{
         connect_to_db,
         models::User,
-        schema::users::{dsl::users, *},
     },
 };
+
+use crate::schema;
 
 use super::{COOKIE_NAME, KEY};
 
