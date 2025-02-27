@@ -2,7 +2,6 @@ use diesel::prelude::*;
 use dotenvy::dotenv;
 use std::env;
 pub mod models;
-pub mod schema;
 
 pub fn connect_to_db() -> MysqlConnection {
     dotenv().ok();
