@@ -17,6 +17,7 @@ use diesel::{query_dsl::methods::{FilterDsl, SelectDsl}, ExpressionMethods, RunQ
 use tower_cookies::{Cookie, Cookies};
 
 // Middleware to force ctx (auth) for all paths under a router
+// If this middleware is used on a router or path, ctx can safely be unwrapped to retrieve user data
 pub async fn mw_require_auth(
 	ctx: Result<Ctx, String>,
 	req: Request<Body>,
@@ -24,7 +25,7 @@ pub async fn mw_require_auth(
 ) -> impl IntoResponse {
 	match ctx {
 		Ok(_) => Ok(next.run(req).await),
-		Err(e) => Err((StatusCode::UNAUTHORIZED, e).into_response()),
+		Err(_) => Err((StatusCode::UNAUTHORIZED, "You need to be logged in to access this page").into_response()),
 		_ => Err("unknown authentication error".into_response())
 	}.into_response()
 }
@@ -64,7 +65,13 @@ pub async fn mw_ctx_resolver(
 	
 		// Store the ctx as a request extension
 		let user = fetched_users.first().unwrap();
-		let context_data = Ctx::new(token_result.unwrap(), user.username.to_owned(), user.firstname.to_owned(), user.surname.to_owned());
+		let context_data = Ctx::new(
+			token_result.unwrap(),
+			user.username.to_owned(),
+			user.firstname.to_owned(),
+			user.surname.to_owned(),
+			user.role.to_owned(),
+		);
 		req.extensions_mut().insert(context_data);
 	}
 
@@ -75,12 +82,12 @@ impl<S: Send + Sync> FromRequestParts<S> for Ctx {
 	type Rejection = String;
 
 	async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, String> {
-
-		parts
+		match parts
 			.extensions
-			.get::<Result<Ctx, String>>()
-			.ok_or("You need to be logged in to access this page".to_string())?
-			.clone()
+			.get::<Ctx>() {
+				Some(ctx) => Ok(ctx.clone()),
+				None => Err("Missing user ctx".to_string()),
+			}
 	}
 }
 

@@ -4,12 +4,13 @@ pub struct Ctx {
 	username: String,
 	firstname: String,
 	surname: String,
+	role: String,
 }
 
 // Constructor.
 impl Ctx {
-	pub fn new(user_id: i32, username: String, firstname: String, surname: String,) -> Self {
-		Self { user_id, username, firstname, surname }
+	pub fn new(user_id: i32, username: String, firstname: String, surname: String, role: String) -> Self {
+		Self { user_id, username, firstname, surname, role }
 	}
 }
 
@@ -29,5 +30,9 @@ impl Ctx {
 
 	pub fn surname(&self) -> String {
 		self.surname.clone()
+	}
+
+	pub fn is_admin(&self) -> bool {
+		self.role == "admin"
 	}
 }

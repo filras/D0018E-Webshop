@@ -32,6 +32,7 @@ pub struct NewUser {
 
 pub fn routes() -> Router {
     Router::new()
+        .route("/me", get(handle_my_user))
         .route("/login", post(handle_login))
         .route("/register", post(handle_register))
         .route("/logout", get(handle_logout
@@ -93,8 +94,10 @@ async fn handle_login(
     format!("Logged in as {}", user.username).into_response()
 }
 
+// Handles the /logout path that logs out the current user if they are signed in
 async fn handle_logout(
     cookies: Cookies,
+    ctx: Result<Ctx, String>,
 ) -> impl IntoResponse {
     // Create private cookie jar from global static KEY to validate cookies
 	let key = KEY.get();
@@ -102,9 +105,10 @@ async fn handle_logout(
     // Remove cookie
     private_cookies.remove(Cookie::build(COOKIE_NAME).path("/").into());
 
-    "Logged out".into_response()
+    format!("Logged out from {}", ctx.unwrap().username()).into_response()
 }
 
+// Handles the register path to register a new user (we could move this to a /account path in the future)
 async fn handle_register(data: Json<NewUser>) -> impl IntoResponse {
     let rcv_user: NewUser = data.0;
 
@@ -129,5 +133,13 @@ async fn handle_register(data: Json<NewUser>) -> impl IntoResponse {
         .execute(conn) {
         Ok(_) => (StatusCode::OK, "User recieved").into_response(),
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response()
+    }
+}
+
+// Handles the /me path, to quickly know if you're logged in, and if so with which account
+async fn handle_my_user(ctx: Result<Ctx, String>) -> impl IntoResponse {
+    match ctx {
+        Ok(user) => format!("Currently logged in as {}. Is admin? {}", user.username(), user.is_admin()),
+        Err(_) => "Not logged in".to_string(),
     }
 }
