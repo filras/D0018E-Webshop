@@ -9,7 +9,6 @@ default-run = "main"
 [dependencies]
 axum = "0.8.1"
 dotenv = "0.15.0"
-mysql = "26.0.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.68"
 strum_macros = "0.27.0"
@@ -18,11 +17,11 @@ diesel = { version = "2.2.0", features = ["mysql"] }
 dotenvy = "0.15"
 tower-cookies = { version = "0.11.0", features = ["private"] }
 tower-http = { version = "0.5.1", features = ["fs", "trace", "cors"] }
+tracing = "0.1.37"
+tracing-subscriber = { version = "0.3.16", features = ["env-filter"]}
+bcrypt = "0.17.0"
+chrono = "0.4.40"
 
 [[bin]]
 name = "main"
 path = "src/main.rs"
-
-[[bin]]
-name = "setup_db"
-path = "src/setup_db.rs"
