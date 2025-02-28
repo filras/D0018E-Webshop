@@ -8,7 +8,7 @@ use axum::{
 };
 
 use diesel::{self, dsl::{delete, insert_into}, prelude::*, AsChangeset};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use tower_cookies::Cookies;
 
 use crate::{
