@@ -43,6 +43,16 @@ async fn handle_post(ctx: Result<Ctx, String>, cookies: Cookies, data: Json<NewU
     }
 
     let rcv_user: NewUser = data.0;
+    let conn = &mut connect_to_db();
+    
+    // Check for duplicate user
+    let user_exists_result = users
+        .filter(username.eq(rcv_user.email.clone()))
+        .select(User::as_select())
+        .first::<User>(conn);
+    if user_exists_result.is_ok() {
+        return (StatusCode::BAD_REQUEST, "Username taken").into_response()
+    }
 
     // Create password hash
     let hash = bcrypt::hash(rcv_user.password, 12);
@@ -50,14 +60,20 @@ async fn handle_post(ctx: Result<Ctx, String>, cookies: Cookies, data: Json<NewU
         return (StatusCode::INTERNAL_SERVER_ERROR, "Unable to hash password").into_response()
     }
 
-    let conn = &mut connect_to_db();
+    // Special case: if the username is given as "admin", set their role to admin
+    // This is to allow the first user to become admin and create other admins
+    let new_user_role = match rcv_user.email == "admin" {
+        true => "admin".to_string(),
+        false => "customer".to_string(),
+    };
+
     let values = (
         username.eq(rcv_user.email.clone()),
         password_hash.eq(hash.unwrap()),
         firstname.eq(rcv_user.firstname),
         surname.eq(rcv_user.surname),
         email.eq(rcv_user.email.clone()),
-        role.eq("customer"),
+        role.eq(new_user_role),
     );
 
     // Insert new user into DB

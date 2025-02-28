@@ -10,6 +10,10 @@ docker compose up
 
 This will download all required components (including the DB) and run the web server (frontend and API) on port 80. To try the webshop out, simply visit [http://localhost](http://localhost) in your favorite browser.
 
+### Note on admin users
+
+As the website admin, create a user with the "email" field set to `admin`. This will make your user into an admin user, which can be used to give other users admin privileges.
+
 ## To setup for development:
 
 The project can also be deployed locally without having to run the full `docker compose` build procedure. You can run the backend, the frontend, or both as completely separate modules during the development process.
