@@ -1,5 +1,5 @@
 use axum::{
-    handler::Handler, http::StatusCode, middleware, response::IntoResponse, routing::{get, post, put}, Json, Router
+    http::StatusCode, middleware, response::IntoResponse, routing::{get, post, put}, Json, Router
 };
 use diesel::{query_dsl::methods::{FilterDsl, SelectDsl}, ExpressionMethods, RunQueryDsl, SelectableHelper};
 use serde::Deserialize;
@@ -60,7 +60,7 @@ async fn handle_login(
     if verification_result.is_err() {
         return (StatusCode::INTERNAL_SERVER_ERROR, format!("Bcrypt error: {}", verification_result.err().unwrap())).into_response()
     } else if !verification_result.unwrap() {
-        return (StatusCode::UNAUTHORIZED, "Incorrect password").into_response();
+        return (StatusCode::FORBIDDEN, "Incorrect password").into_response();
     }
 
     create_user_session(cookies, user.id);

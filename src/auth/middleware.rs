@@ -28,6 +28,26 @@ pub async fn require_auth(
 	}.into_response()
 }
 
+// Middleware to force ctx (auth) for all paths under a router AND only allow users with admin privileges
+// If this middleware is used on a router or path, ctx can safely be unwrapped to retrieve user data
+pub async fn require_admin(
+	ctx: Result<Ctx, String>,
+	req: Request<Body>,
+	next: Next,
+) -> impl IntoResponse {
+	match ctx {
+		Ok(user) => {
+			// User is signed in, so check if they are admin
+			match user.is_admin() {
+				true => Ok(next.run(req).await),
+				false => Err((StatusCode::FORBIDDEN, "You must be an admin user to access this endpoint").into_response())
+			}
+		},
+		// Otherwise, send unauthorized
+		Err(_) => Err((StatusCode::UNAUTHORIZED, "You need to be logged in to access this endpoint").into_response()),
+	}
+}
+
 // Middleware to perform context (Ctx) resolution from cookies
 pub async fn ctx_resolver(
 	cookies: Cookies,
