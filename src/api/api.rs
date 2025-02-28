@@ -7,20 +7,16 @@ use axum::{
     Router,
 };
 use diesel::{
-    delete, 
     prelude::*,
     dsl::insert_into,
 };
 use serde::Deserialize;
 
 use crate::{
-    schema::{
-        items::{dsl::items, *},
-        users::{dsl::users, *},
-    },
+    schema::items::{dsl::items, *},
     db::{
         connect_to_db,
-        models::{Item, NewItem, User},
+        models::{Item, NewItem},
     }
 };
 
@@ -38,77 +34,10 @@ struct Pagination {
     per_page: usize,
 }
 
-#[derive(Debug, Deserialize)]
-struct Uname {
-    username: String,
-}
-
 // routes for api
 
 pub fn routes() -> Router {
-    Router::new()
-        .route("/items", get(get_items).post(post_items))
-        .route(
-            "/users",
-            get(get_user)
-                .delete(delete_user)
-                // .put(update_user),
-        )
-        .route("/test", get(|| async {"Hello, world!".into_response()}))
-}
-
-// async fn update_user(uname: Query<Uname>, data: Json<NewUser>) -> impl IntoResponse {
-//     let uname: Uname = uname.0;
-//     let rcv_user: NewUser = data.0;
-//     use crate::db::schema::users::dsl::*;
-//     let conn = &mut connect_to_db();
-//     let values = (
-//         username.eq(rcv_user.username),
-//         password_hash.eq(rcv_user.password_hash),
-//         firstname.eq(rcv_user.firstname),
-//         surname.eq(rcv_user.surname),
-//         email.eq(rcv_user.email),
-//         role.eq(rcv_user.role),
-//         address.eq(rcv_user.address),
-//         zipcode.eq(rcv_user.zipcode),
-//         co.eq(rcv_user.co),
-//         country.eq(rcv_user.country),
-//     );
-
-//     return match diesel::update(users)
-//         .filter(username.eq(uname.username))
-//         .set(values)
-//         .execute(conn) {
-//         Ok(_) => (StatusCode::OK, "User updated").into_response(),
-//         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response()
-//     }
-    
-// }
-
-async fn delete_user(uname: Query<Uname>) -> impl IntoResponse {
-    let uname: Uname = uname.0;
-    let conn = &mut connect_to_db();
-    let old_count = users.count().first::<i64>(conn);
-
-    let result = delete(users.filter(username.eq(uname.username)))
-        .execute(conn);
-    assert_eq!(old_count.map(|count| count - 1), users.count().first(conn));
-    return match result {
-        Ok(_) => (StatusCode::OK, "User deleted").into_response(),
-        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response()
-    }
-}
-
-async fn get_user(uname: Query<Uname>) -> impl IntoResponse {
-    let uname: Uname = uname.0;
-    let conn = &mut connect_to_db();
-    return match users
-        .filter(username.eq(uname.username))
-        .select(User::as_select())
-        .load::<User>(conn) {
-        Ok(res) => (StatusCode::OK, Json(res)).into_response(),
-        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response()
-    }
+    Router::new().route("/items", get(get_items).post(post_items))
 }
 
 async fn get_items(pagination: Query<Pagination>) -> impl IntoResponse {

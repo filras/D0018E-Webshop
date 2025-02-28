@@ -28,14 +28,13 @@ async fn main() -> Result<()> {
     // Combine all routers
 	let mut routes_all = Router::new()
         // Add routes
-        .nest("/auth", auth::routes::routes())
-        .nest("/api", api::routes() // Get API router and add middleware to require auth
-            .route_layer(middleware::from_fn(auth::middleware::mw_require_auth)))
+        .nest("/auth", auth::session::routes())
+        .nest("/api", api::router()) // Get API router and add middleware to require auth
         .nest_service("/assets", ServeDir::new("./frontend/dist/assets")) // Serve static files for frontend
         .fallback(serve_webpage) // Serves the main index file for all other paths, necessary for react-router to work
 
         // Add cookie middleware and context resolver
-        .layer(middleware::from_fn(auth::middleware::mw_ctx_resolver))
+        .layer(middleware::from_fn(auth::middleware::ctx_resolver))
         .layer(CookieManagerLayer::new())
         
         // Add trace layer for logging

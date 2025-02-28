@@ -1,7 +1,7 @@
 use axum::{
     handler::Handler, http::StatusCode, middleware, response::IntoResponse, routing::{get, post}, Json, Router
 };
-use diesel::{dsl::insert_into, query_dsl::methods::{FilterDsl, SelectDsl}, ExpressionMethods, RunQueryDsl, SelectableHelper};
+use diesel::{query_dsl::methods::{FilterDsl, SelectDsl}, ExpressionMethods, RunQueryDsl, SelectableHelper};
 use serde::Deserialize;
 use tower_cookies::{Cookie, Cookies};
 
@@ -14,8 +14,6 @@ use crate::{
     },
 };
 
-use crate::schema;
-
 use super::{COOKIE_NAME, KEY};
 
 #[derive(Deserialize)]
@@ -24,21 +22,12 @@ pub struct Login {
     password: String,
 }
 
-#[derive(Deserialize)]
-pub struct NewUser {
-    pub password: String,
-    pub firstname: String,
-    pub surname: String,
-    pub email: String,
-}
-
 pub fn routes() -> Router {
     Router::new()
         .route("/me", get(handle_my_user))
         .route("/login", post(handle_login))
-        .route("/register", post(handle_register))
         .route("/logout", get(handle_logout
-            .layer(middleware::from_fn(auth::middleware::mw_require_auth)))) // Can only log out if already logged in
+            .layer(middleware::from_fn(auth::middleware::require_auth)))) // Can only log out if already logged in
 }
 
 async fn handle_login(
@@ -82,16 +71,7 @@ async fn handle_login(
         return (StatusCode::UNAUTHORIZED, "Incorrect password").into_response();
     }
 
-    // Create private cookie jar from global static KEY to validate cookies
-	let key = KEY.get();
-	let private_cookies = cookies.private(key.unwrap());
-
-    if private_cookies.get(COOKIE_NAME).is_none() {
-        let mut cookie = Cookie::new(COOKIE_NAME, user.id.to_string());
-        cookie.set_http_only(true);
-        cookie.set_path("/");
-        private_cookies.add(cookie);
-    }
+    create_user_session(cookies, user.id);
 
     format!("Logged in as {}", user.username).into_response()
 }
@@ -101,41 +81,9 @@ async fn handle_logout(
     cookies: Cookies,
     ctx: Result<Ctx, String>,
 ) -> impl IntoResponse {
-    // Create private cookie jar from global static KEY to validate cookies
-	let key = KEY.get();
-	let private_cookies = cookies.private(key.unwrap());
-    // Remove cookie
-    private_cookies.remove(Cookie::build(COOKIE_NAME).path("/").into());
+    remove_user_session(cookies);
 
-    format!("Logged out from {}", ctx.unwrap().username()).into_response()
-}
-
-// Handles the register path to register a new user (we could move this to a /account path in the future)
-async fn handle_register(data: Json<NewUser>) -> impl IntoResponse {
-    let rcv_user: NewUser = data.0;
-
-    // Create password hash
-    let hash = bcrypt::hash(rcv_user.password, 12);
-    if hash.is_err() {
-        return (StatusCode::INTERNAL_SERVER_ERROR, "Unable to hash password").into_response()
-    }
-
-    let conn = &mut connect_to_db();
-    let values = (
-        username.eq(rcv_user.email.clone()),
-        password_hash.eq(hash.unwrap()),
-        firstname.eq(rcv_user.firstname),
-        surname.eq(rcv_user.surname),
-        email.eq(rcv_user.email),
-        role.eq("customer"),
-    );
-
-    return match insert_into(users)
-        .values(values)
-        .execute(conn) {
-        Ok(_) => (StatusCode::OK, "User recieved").into_response(),
-        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response()
-    }
+    format!("Logged out from {}", ctx.unwrap().username())
 }
 
 // Handles the /me path, to quickly know if you're logged in, and if so with which account
@@ -144,4 +92,27 @@ async fn handle_my_user(ctx: Result<Ctx, String>) -> impl IntoResponse {
         Ok(user) => format!("Currently logged in as {}. Is admin? {}", user.username(), user.is_admin()),
         Err(_) => "Not logged in".to_string(),
     }
+}
+
+// Create cookie for user with the given user id
+pub fn create_user_session(cookies: Cookies, user_id: i32) {
+    // Create private cookie jar from global static KEY to validate cookies
+	let key = KEY.get();
+	let private_cookies = cookies.private(key.unwrap());
+
+    // Add cookie if it doesn't already exist
+    if private_cookies.get(COOKIE_NAME).is_none() {
+        let mut cookie = Cookie::new(COOKIE_NAME, user_id.to_string());
+        cookie.set_http_only(true);
+        cookie.set_path("/");
+        private_cookies.add(cookie);
+    }
+}
+
+pub fn remove_user_session(cookies: Cookies) {
+    // Create private cookie jar from global static KEY to validate cookies
+    let key = KEY.get();
+    let private_cookies = cookies.private(key.unwrap());
+    // Remove cookie
+    private_cookies.remove(Cookie::build(COOKIE_NAME).path("/").into());
 }

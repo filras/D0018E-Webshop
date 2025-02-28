@@ -17,7 +17,7 @@ use tower_cookies::{Cookie, Cookies};
 
 // Middleware to force ctx (auth) for all paths under a router
 // If this middleware is used on a router or path, ctx can safely be unwrapped to retrieve user data
-pub async fn mw_require_auth(
+pub async fn require_auth(
 	ctx: Result<Ctx, String>,
 	req: Request<Body>,
 	next: Next,
@@ -25,12 +25,11 @@ pub async fn mw_require_auth(
 	match ctx {
 		Ok(_) => Ok(next.run(req).await),
 		Err(_) => Err((StatusCode::UNAUTHORIZED, "You need to be logged in to access this page").into_response()),
-		_ => Err("unknown authentication error".into_response())
 	}.into_response()
 }
 
 // Middleware to perform context (Ctx) resolution from cookies
-pub async fn mw_ctx_resolver(
+pub async fn ctx_resolver(
 	cookies: Cookies,
 	mut req: Request<Body>,
 	next: Next,
