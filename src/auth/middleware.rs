@@ -24,7 +24,7 @@ pub async fn require_auth(
 ) -> impl IntoResponse {
 	match ctx {
 		Ok(_) => Ok(next.run(req).await),
-		Err(_) => Err((StatusCode::UNAUTHORIZED, "You need to be logged in to access this page").into_response()),
+		Err(_) => Err((StatusCode::UNAUTHORIZED, "You need to be logged in to access this endpoint").into_response()),
 	}.into_response()
 }
 

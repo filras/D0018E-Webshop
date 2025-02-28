@@ -1,5 +1,5 @@
 use axum::{
-    handler::Handler, http::StatusCode, middleware, response::IntoResponse, routing::{get, post}, Json, Router
+    handler::Handler, http::StatusCode, middleware, response::IntoResponse, routing::{get, post, put}, Json, Router
 };
 use diesel::{query_dsl::methods::{FilterDsl, SelectDsl}, ExpressionMethods, RunQueryDsl, SelectableHelper};
 use serde::Deserialize;
@@ -26,8 +26,10 @@ pub fn routes() -> Router {
     Router::new()
         .route("/me", get(handle_my_user))
         .route("/login", post(handle_login))
-        .route("/logout", get(handle_logout
-            .layer(middleware::from_fn(auth::middleware::require_auth)))) // Can only log out if already logged in
+        .route("/logout", get(handle_logout)
+            .layer(middleware::from_fn(auth::middleware::require_auth))) // Can only log out if already logged in
+        .route("/password", put(handle_change_password)
+            .layer(middleware::from_fn(auth::middleware::require_auth))) // May only change password if logged in
 }
 
 async fn handle_login(
@@ -44,25 +46,15 @@ async fn handle_login(
     let conn = &mut connect_to_db();
     let result = users.filter(username.eq(login.username.clone()))
         .select(User::as_select())
-        .load::<User>(conn);
+        .first::<User>(conn);
 
     // Handle error conditions
     if result.is_err() {
         return (StatusCode::INTERNAL_SERVER_ERROR, format!("Database error: {}", result.err().unwrap())).into_response()
     }
-    let retrieved_users = result.unwrap();
-    if retrieved_users.len() > 1 {
-        return (StatusCode::INTERNAL_SERVER_ERROR, "Database error: found duplicate users").into_response()
-    }
-    // Handle user not found
-    else if retrieved_users.len() == 0 {
-        return (StatusCode::BAD_REQUEST, format!("Could not find user '{}'", login.username)).into_response()
-    }
-
-    // We have verified that there is only one retrieved user, so unwrap it
-    let user = retrieved_users.first().unwrap();
-
+    
     // Verify the password hash with bcrypt
+    let user = result.unwrap();
     let verification_result = bcrypt::verify(login.password.to_string(), user.password_hash.as_str());
 
     if verification_result.is_err() {
@@ -92,6 +84,51 @@ async fn handle_my_user(ctx: Result<Ctx, String>) -> impl IntoResponse {
         Ok(user) => format!("Currently logged in as {}. Is admin? {}", user.username(), user.is_admin()),
         Err(_) => "Not logged in".to_string(),
     }
+}
+
+#[derive(Deserialize)]
+pub struct ChangePassword {
+    old_password: String,
+    new_password: String,
+}
+
+async fn handle_change_password(ctx: Result<Ctx, String>, password: Json<ChangePassword>) -> impl IntoResponse {
+    let user_id = ctx.unwrap().user_id();
+    // Get the user password from the database
+    let conn = &mut connect_to_db();
+    let result = users.filter(id.eq(user_id))
+        .select(User::as_select())
+        .first::<User>(conn);
+
+    // Handle error conditions
+    if result.is_err() {
+        return (StatusCode::INTERNAL_SERVER_ERROR, format!("Database error: {}", result.err().unwrap())).into_response()
+    }
+
+    // Verify the password hash with bcrypt
+    let user = result.unwrap();
+    let verification_result = bcrypt::verify(password.old_password.to_string(), user.password_hash.as_str());
+
+    if verification_result.is_err() {
+        return (StatusCode::INTERNAL_SERVER_ERROR, format!("Bcrypt error: {}", verification_result.err().unwrap())).into_response()
+    } else if !verification_result.unwrap() {
+        return (StatusCode::BAD_REQUEST, "Incorrect old password").into_response()
+    }
+
+    // Generate a new hash
+    let new_hash = bcrypt::hash(password.new_password.to_string(), 12);
+    if new_hash.is_err() {
+        return (StatusCode::INTERNAL_SERVER_ERROR, "Unable to hash password").into_response()
+    }
+    // Set new password hash in DB
+    return match diesel::update(users)
+        .filter(id.eq(user_id))
+        .set(password_hash.eq(new_hash.unwrap()))
+        .execute(conn)
+    {
+        Ok(_) => (StatusCode::OK, "Changed password").into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    };
 }
 
 // Create cookie for user with the given user id
