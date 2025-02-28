@@ -3,7 +3,7 @@ use axum::{
 };
 use diesel::{query_dsl::methods::{FilterDsl, SelectDsl}, ExpressionMethods, RunQueryDsl, SelectableHelper};
 use serde::Deserialize;
-use tower_cookies::{Cookie, Cookies};
+use tower_cookies::{cookie::time::Duration, Cookie, Cookies};
 
 use crate::{
     auth::{self, ctx::Ctx},
@@ -14,7 +14,7 @@ use crate::{
     },
 };
 
-use super::{COOKIE_NAME, KEY};
+use super::{COOKIE_EXPIRATION_TIME_SECONDS, COOKIE_NAME, KEY};
 
 #[derive(Deserialize)]
 pub struct Login {
@@ -166,9 +166,36 @@ pub fn create_user_session(cookies: Cookies, user_id: i32) {
 
     // Add cookie if it doesn't already exist
     if private_cookies.get(COOKIE_NAME).is_none() {
-        let mut cookie = Cookie::new(COOKIE_NAME, user_id.to_string());
+        let current_time_utc = chrono::Utc::now().timestamp();
+        let cookie_string = format!("{}:{}", user_id, current_time_utc); // Timestamp cookie with UTC secs for timeout purposes
+
+        let mut cookie = Cookie::new(COOKIE_NAME, cookie_string);
         cookie.set_http_only(true);
         cookie.set_path("/");
+        cookie.set_max_age(Duration::seconds(COOKIE_EXPIRATION_TIME_SECONDS));
+        private_cookies.add(cookie);
+    }
+}
+
+// Reset cookie for user with the given user id (so cookie doesn't expire)
+pub fn update_user_session(cookies: Cookies, user_id: i32) {
+    // Create private cookie jar from global static KEY to validate cookies
+	let key = KEY.get();
+	let private_cookies = cookies.private(key.unwrap());
+
+    // Update cookie if it exists
+    if private_cookies.get(COOKIE_NAME).is_some() {
+        // Remove old
+        private_cookies.remove(Cookie::build(COOKIE_NAME).path("/").into());
+
+        // Create and set a new one
+        let current_time_utc = chrono::Utc::now().timestamp();
+        let cookie_string = format!("{}:{}", user_id, current_time_utc); // Timestamp cookie with UTC secs for timeout purposes
+
+        let mut cookie = Cookie::new(COOKIE_NAME, cookie_string);
+        cookie.set_http_only(true);
+        cookie.set_path("/");
+        cookie.set_max_age(Duration::seconds(COOKIE_EXPIRATION_TIME_SECONDS));
         private_cookies.add(cookie);
     }
 }
