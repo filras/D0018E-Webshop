@@ -30,6 +30,8 @@ pub fn routes() -> Router {
             .layer(middleware::from_fn(auth::middleware::require_auth))) // Can only log out if already logged in
         .route("/password", put(handle_change_password)
             .layer(middleware::from_fn(auth::middleware::require_auth))) // May only change password if logged in
+        .route("/set-admin", post(handle_set_admin)
+            .layer(middleware::from_fn(auth::middleware::require_admin))) // May only create admins if admin
 }
 
 async fn handle_login(
@@ -127,6 +129,31 @@ async fn handle_change_password(ctx: Result<Ctx, String>, password: Json<ChangeP
         .execute(conn)
     {
         Ok(_) => (StatusCode::OK, "Changed password").into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    };
+}
+
+#[derive(Deserialize)]
+pub struct SetAdmin {
+    username: String,
+    set_admin: bool,
+}
+
+async fn handle_set_admin(user_to_update: Json<SetAdmin>) -> impl IntoResponse {
+    // Turn set_admin into role string
+    let new_role = match user_to_update.set_admin {
+        true => "admin".to_string(),
+        false => "customer".to_string(),
+    };
+    
+    // Set new role in DB
+    let conn = &mut connect_to_db();
+    return match diesel::update(users)
+        .filter(username.eq(user_to_update.username.clone()))
+        .set(role.eq(new_role.clone()))
+        .execute(conn)
+    {
+        Ok(_) => (StatusCode::OK, format!("Updated role of {} to {}", user_to_update.username.to_string(), new_role.to_string())).into_response(),
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
     };
 }
