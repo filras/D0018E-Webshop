@@ -10,7 +10,7 @@ use axum::{
 	body::Body,
 	http::{Request, StatusCode},
 	middleware::Next,
-	response::{IntoResponse, Response},
+	response::IntoResponse,
 };
 use diesel::{query_dsl::methods::{FilterDsl, SelectDsl}, ExpressionMethods, RunQueryDsl, SelectableHelper};
 use tower_cookies::{Cookie, Cookies};
