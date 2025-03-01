@@ -22,7 +22,6 @@ async function getItems(): Promise<Product[]>{
     return await items.json();
     
 }
-// Asnyc await
 
 
 

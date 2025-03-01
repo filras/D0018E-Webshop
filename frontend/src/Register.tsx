@@ -1,5 +1,7 @@
 import { Component } from "react";
 import flygplan from "./assets/flygplan.png"
+import API_URL from "./etc/api_url";
+
 type MyProps = {
   
 };
@@ -131,9 +133,10 @@ class Register extends Component<MyProps, MyState> {
     const form = e.target;
     const formData = new FormData(form);
 
-    //Implement same fetch from login but fetch api from /auth/api
-
+    
+    // Send POST to /auth/register to reg account given in form-field
     const formJson = Object.fromEntries(formData.entries());
+    fetch(API_URL+"/auth/register", { headers: {"Content-Type": "application/json" }, method: "post", body: JSON.stringify(formJson) });
     console.log(formJson); //Errorhandling, remove later
   }
 
