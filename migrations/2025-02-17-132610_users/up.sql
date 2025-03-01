@@ -1,9 +1,9 @@
 CREATE TABLE users (
     id INTEGER AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(255) NOT NULL,
+    username VARCHAR(255) NOT NULL FULLTEXT,
     password_hash VARCHAR(255) NOT NULL,
-    firstname VARCHAR(255) NOT NULL,
-    surname VARCHAR(255) NOT NULL,
+    firstname VARCHAR(255) NOT NULL FULLTEXT,
+    surname VARCHAR(255) NOT NULL FULLTEXT,
     email VARCHAR(255) NOT NULL,
     role VARCHAR(255) NOT NULL,
     address VARCHAR(255),

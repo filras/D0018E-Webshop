@@ -17,13 +17,14 @@ use crate::{
     schema::users::{self as Users, dsl::users, *},
 };
 
-pub fn router() -> Router {
-    Router::new().route("/account", post(handle_post)).route(
-        "/account",
-        get(handle_get)
+pub fn routes() -> Router {
+    Router::new()
+        .route("/account", post(handle_post))
+        .route("/account",
+            get(handle_get)
             .put(handle_put)
             .delete(handle_delete)
-            .layer(middleware::from_fn(auth::middleware::require_auth)), // Can only get/edit/delete account if logged in
+                .layer(middleware::from_fn(auth::middleware::require_auth)), // Can only get/edit/delete account if logged in
     )
 }
 
