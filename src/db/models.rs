@@ -3,11 +3,16 @@ use diesel::prelude::*;
 use diesel::Queryable;
 use serde::{Serialize, Deserialize};
 
+// Tsync syncs types from Rust to the frontend in TS
+// To perform a sync, add #[tsync] to the struct and sync with `cargo run --bin tsync`
+use tsync::tsync;
+
 #[derive(
     Queryable, Insertable, Identifiable, Selectable, Serialize, Deserialize, Debug,
 )]
 #[diesel(table_name = items)]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
+#[tsync]
 pub struct Item {
     pub id: i32,
     pub title: String,
@@ -20,6 +25,7 @@ pub struct Item {
 
 #[derive(Insertable, Serialize, Deserialize)]
 #[diesel(table_name = items)]
+#[tsync]
 pub struct NewItem {
     pub title: String,
     pub description: Option<String>,
@@ -32,6 +38,7 @@ pub struct NewItem {
 // Having Options here means we will automatically ignore any fields not included in the query instead of writing these as null
 #[derive(AsChangeset, Deserialize)]
 #[diesel(table_name = items)]
+#[tsync]
 pub struct UpdateItem {
     pub title: Option<String>,
     pub description: Option<String>,
@@ -53,6 +60,7 @@ pub struct UpdateItem {
 )]
 #[diesel(table_name = users)]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
+#[tsync]
 pub struct User {
     pub id: i32,
     pub username: String,
@@ -69,6 +77,7 @@ pub struct User {
 
 // User for register
 #[derive(Deserialize)]
+#[tsync]
 pub struct NewUser {
     pub password: String,
     pub firstname: String,
@@ -79,6 +88,7 @@ pub struct NewUser {
 // Having Options here means we will automatically ignore any fields not included in the query instead of writing these as null
 #[derive(AsChangeset, Deserialize)]
 #[diesel(table_name = users)]
+#[tsync]
 pub struct UpdateUser {
     pub firstname: Option<String>,
     pub surname: Option<String>,
@@ -91,6 +101,7 @@ pub struct UpdateUser {
 // Having Options here means we will automatically ignore any fields not included in the query instead of writing these as null
 #[derive(AsChangeset, Deserialize)]
 #[diesel(table_name = users)]
+#[tsync]
 pub struct UpdateUserAsAdmin {
     pub username: Option<String>,
     pub email: Option<String>,
@@ -116,6 +127,7 @@ fn default_per_page() -> usize {
     10
 }
 #[derive(Debug, Deserialize)]
+#[tsync]
 pub struct PaginatedSearchQuery {
     #[serde(default = "default_page")]
     pub page: usize,
