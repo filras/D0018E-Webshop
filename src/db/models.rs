@@ -1,8 +1,10 @@
 use crate::schema::*;
 use diesel::prelude::*;
 use diesel::Queryable;
+use serde::{Serialize, Deserialize};
+
 #[derive(
-    Queryable, Insertable, Identifiable, Selectable, serde::Serialize, serde::Deserialize, Debug,
+    Queryable, Insertable, Identifiable, Selectable, Serialize, Deserialize, Debug,
 )]
 #[diesel(table_name = items)]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
@@ -16,7 +18,7 @@ pub struct Item {
     pub discounted_price: Option<i32>,
 }
 
-#[derive(Insertable, serde::Serialize, serde::Deserialize)]
+#[derive(Insertable, Serialize, Deserialize)]
 #[diesel(table_name = items)]
 pub struct NewItem {
     pub title: String,
@@ -27,14 +29,26 @@ pub struct NewItem {
     pub discounted_price: Option<i32>,
 }
 
+// Having Options here means we will automatically ignore any fields not included in the query instead of writing these as null
+#[derive(AsChangeset, Deserialize)]
+#[diesel(table_name = items)]
+pub struct UpdateItem {
+    pub title: Option<String>,
+    pub description: Option<String>,
+    pub price: Option<i32>,
+    pub in_stock: Option<i32>,
+    pub average_rating: Option<f32>,
+    pub discounted_price: Option<i32>,
+}
+
 #[derive(
     AsChangeset,
     Queryable,
     Insertable,
     Identifiable,
     Selectable,
-    serde::Serialize,
-    serde::Deserialize,
+    Serialize,
+    Deserialize,
     Debug,
 )]
 #[diesel(table_name = users)]
@@ -53,3 +67,60 @@ pub struct User {
     pub country: Option<String>,
 }
 
+// User for register
+#[derive(Deserialize)]
+pub struct NewUser {
+    pub password: String,
+    pub firstname: String,
+    pub surname: String,
+    pub email: String,
+}
+
+// Having Options here means we will automatically ignore any fields not included in the query instead of writing these as null
+#[derive(AsChangeset, Deserialize)]
+#[diesel(table_name = users)]
+pub struct UpdateUser {
+    pub firstname: Option<String>,
+    pub surname: Option<String>,
+    pub address: Option<String>,
+    pub zipcode: Option<String>,
+    pub co: Option<String>,
+    pub country: Option<String>,
+}
+
+// Having Options here means we will automatically ignore any fields not included in the query instead of writing these as null
+#[derive(AsChangeset, Deserialize)]
+#[diesel(table_name = users)]
+pub struct UpdateUserAsAdmin {
+    pub username: Option<String>,
+    pub email: Option<String>,
+    pub firstname: Option<String>,
+    pub surname: Option<String>,
+    pub address: Option<String>,
+    pub zipcode: Option<String>,
+    pub co: Option<String>,
+    pub country: Option<String>,
+}
+
+// Generic query by ID
+#[derive(Deserialize)]
+pub struct IdQuery {
+    pub id: i32,
+}
+
+// Generic paginated search query struct
+fn default_page() -> usize {
+    1
+}
+fn default_per_page() -> usize {
+    10
+}
+#[derive(Debug, Deserialize)]
+pub struct PaginatedSearchQuery {
+    #[serde(default = "default_page")]
+    pub page: usize,
+    #[serde(default = "default_per_page")]
+    pub per_page: usize,
+
+    pub search: Option<String>,
+}

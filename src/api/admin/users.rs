@@ -7,12 +7,16 @@ use axum::{
 };
 
 use diesel::{
-    self, dsl::delete, prelude::*, AsChangeset
+    self, dsl::delete, prelude::*
 };
-use serde::Deserialize;
 
 use crate::{
-    auth::ctx::Ctx, db::{connect_to_db, models::User}, schema::users::{self as Users, dsl::users, *}
+    auth::ctx::Ctx,
+    db::{
+        connect_to_db,
+        models::{PaginatedSearchQuery, UpdateUser, User, IdQuery}
+    },
+    schema::users::{dsl::users, *},
 };
 
 pub fn routes() -> Router {
@@ -23,26 +27,9 @@ pub fn routes() -> Router {
             .delete(handle_delete))
 }
 
-
-fn default_page() -> usize {
-    1
-}
-fn default_per_page() -> usize {
-    10
-}
-#[derive(Debug, Deserialize)]
-struct GetUserQuery {
-    #[serde(default = "default_page")]
-    page: usize,
-    #[serde(default = "default_per_page")]
-    per_page: usize,
-
-    search: Option<String>,
-}
-
 // Query for users, uses search if present, otherwise all. Paginated
-async fn handle_get(query: Query<GetUserQuery>) -> impl IntoResponse {
-    let query: GetUserQuery = query.0;
+async fn handle_get(query: Query<PaginatedSearchQuery>) -> impl IntoResponse {
+    let query: PaginatedSearchQuery = query.0;
     let conn = &mut connect_to_db();
     
     // Make different queries depending on if we're searching for username
@@ -75,30 +62,10 @@ async fn handle_get(query: Query<GetUserQuery>) -> impl IntoResponse {
     }
 }
 
-// Select user, used for PUT and DELETE
-#[derive(Deserialize)]
-struct UserQuery {
-    id: i32,
-}
-// Having Options here means we will automatically ignore any fields not included in the query instead of writing these as null
-#[derive(AsChangeset, Deserialize)]
-#[diesel(table_name = Users)]
-struct UpdateUser {
-    username: Option<String>,
-    email: Option<String>,
-    firstname: Option<String>,
-    surname: Option<String>,
-    address: Option<String>,
-    zipcode: Option<String>,
-    co: Option<String>,
-    country: Option<String>,
-}
-
 // Admins are allowed to edit any user's data except id and password
-async fn handle_put(user: Query<UserQuery>, data: Json<UpdateUser>) -> impl IntoResponse {
+async fn handle_put(user: Query<IdQuery>, data: Json<UpdateUser>) -> impl IntoResponse {
     let rcv_user: UpdateUser = data.0;
     let user_id = user.0.id;
-    
     
     let conn = &mut connect_to_db();
     return match diesel::update(users)
@@ -106,14 +73,17 @@ async fn handle_put(user: Query<UserQuery>, data: Json<UpdateUser>) -> impl Into
     .set(rcv_user)
     .execute(conn)
     {
-        Ok(_) => (StatusCode::OK, format!("User {} updated", user_id)).into_response(),
+        Ok(users_updated) => match users_updated > 0 {
+            true => (StatusCode::OK, format!("User {} updated", user_id)).into_response(),
+            false => (StatusCode::BAD_REQUEST, "No user found").into_response(),
+        },
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
     };
 }
 
 
 // Handles DELETE to delete and log out the current user
-async fn handle_delete(ctx: Result<Ctx, String>, user: Query<UserQuery>) -> impl IntoResponse {
+async fn handle_delete(ctx: Result<Ctx, String>, user: Query<IdQuery>) -> impl IntoResponse {
     let conn = &mut connect_to_db();
     let user_id = user.0.id;
 

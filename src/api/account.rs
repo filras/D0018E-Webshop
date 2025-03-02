@@ -7,14 +7,13 @@ use axum::{
     Router,
 };
 
-use diesel::{self, dsl::{delete, insert_into}, prelude::*, AsChangeset};
-use serde::Deserialize;
+use diesel::{self, dsl::{delete, insert_into}, prelude::*};
 use tower_cookies::Cookies;
 
 use crate::{
     auth::{self, session, ctx::Ctx},
-    db::{connect_to_db, models::User},
-    schema::users::{self as Users, dsl::users, *},
+    db::{connect_to_db, models::{User, UpdateUser, NewUser}},
+    schema::users::{dsl::users, *},
 };
 
 pub fn routes() -> Router {
@@ -26,14 +25,6 @@ pub fn routes() -> Router {
             .delete(handle_delete)
                 .layer(middleware::from_fn(auth::middleware::require_auth)), // Can only get/edit/delete account if logged in
     )
-}
-
-#[derive(Deserialize)]
-pub struct NewUser {
-    pub password: String,
-    pub firstname: String,
-    pub surname: String,
-    pub email: String,
 }
 
 // Handles POST to register a new user
@@ -98,18 +89,6 @@ async fn handle_post(ctx: Result<Ctx, String>, cookies: Cookies, data: Json<NewU
     let user = read_result.unwrap();
     session::create_user_session(cookies, user.id);
     return (StatusCode::OK, format!("Created account {}", user.username)).into_response()
-}
-
-// Having Options here means we will automatically ignore any fields not included in the query instead of writing these as null
-#[derive(AsChangeset, Deserialize)]
-#[diesel(table_name = Users)]
-struct UpdateUser {
-    firstname: Option<String>,
-    surname: Option<String>,
-    address: Option<String>,
-    zipcode: Option<String>,
-    co: Option<String>,
-    country: Option<String>,
 }
 
 async fn handle_put(ctx: Result<Ctx, String>, data: Json<UpdateUser>) -> impl IntoResponse {
