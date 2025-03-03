@@ -7,9 +7,10 @@ interface Props {
 
 export default function Users({ user_id }: Props) {
   const [users, setUsers] = useState<Array<User>>([]);
+  const [page, setPage] = useState<number>(1);
 
   async function fetchUsers() {
-    const usersResult = await fetch(ADMIN_API_URL + "/users");
+    const usersResult = await fetch(ADMIN_API_URL + "/users?page=" + page);
     const users = await usersResult.json();
     setUsers(users);
   }
@@ -40,11 +41,18 @@ export default function Users({ user_id }: Props) {
   }
 
   // Fetch users once
-  useEffect(() => {fetchUsers()}, []);
+  useEffect(() => {fetchUsers()}, [page]);
 
   return (
     <>
       <h1 className="admin-title">Manage users</h1>
+
+      <div className="admin-section">
+        <button onClick={() => setPage(Math.max(page - 1, 1))}>Previous page</button>
+        <p>Current page: {page}</p>
+        <button onClick={() => setPage(page + 1)}>Next page</button>
+      </div>
+
       <table className="admin-table">
         <tr>
           <th>ID</th>
