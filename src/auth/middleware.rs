@@ -90,8 +90,6 @@ pub async fn ctx_resolver(
 					.select(User::as_select())
 					.first::<User>(conn);
 			if result.is_err() {
-				// User might have been deleted, so remove their session, then return an error
-				private_cookies.remove(Cookie::build(COOKIE_NAME).path("/").into());
 				return (StatusCode::INTERNAL_SERVER_ERROR, "Unable to fetch user data").into_response()
 			}
 			let user = result.unwrap();

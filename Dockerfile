@@ -3,9 +3,9 @@ FROM rust:latest AS backend-builder
 WORKDIR /app
 COPY Cargo.toml Cargo.lock /app/
 RUN mkdir /app/src && echo "fn main() {}" > /app/src/main.rs
-RUN cargo build --bin main --release && rm -rf /app/src
+RUN cargo build --release && rm -rf /app/src
 COPY . .
-RUN touch /app/src/main.rs && cargo build --bin main --release
+RUN touch /app/src/main.rs && cargo build --release
 # Build diesel_cli binary
 RUN cargo install diesel_cli --no-default-features --features mysql
 
