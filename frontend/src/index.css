@@ -13,6 +13,26 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  height: 100%;
+}
+
+#root {
+  min-height: 100%;
+  display: flex;
+  flex-flow: column;
+}
+
+#page-content {
+  flex: 1 1 auto;
+  display: flex;
+}
+
 a {
   font-weight: 500;
   color: #646cff;

@@ -21,7 +21,12 @@ tracing = "0.1.37"
 tracing-subscriber = { version = "0.3.16", features = ["env-filter"]}
 bcrypt = "0.17.0"
 chrono = "0.4.40"
+tsync = "2.2.1"
 
 [[bin]]
 name = "main"
 path = "src/main.rs"
+
+[[bin]]
+name = "tsync"
+path = "bin/tsync.rs"
