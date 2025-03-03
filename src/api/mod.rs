@@ -1,9 +1,9 @@
 use axum::{http::StatusCode, middleware, response::IntoResponse, Router};
 
 use crate::auth::middleware::require_auth;
-
 mod account;
 mod api;
+mod cart;
 
 pub fn router() -> Router {
     Router::new()

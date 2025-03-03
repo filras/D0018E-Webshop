@@ -1,6 +1,14 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
+    cart_items (user_id, item_id) {
+        user_id -> Integer,
+        item_id -> Integer,
+        amount -> Integer,
+    }
+}
+
+diesel::table! {
     items (id) {
         id -> Integer,
         #[max_length = 255]
@@ -39,7 +47,6 @@ diesel::table! {
     }
 }
 
-diesel::allow_tables_to_appear_in_same_query!(
-    items,
-    users,
-);
+diesel::allow_tables_to_appear_in_same_query!(cart_items, items, users,);
+
+diesel::joinable!(cart_items -> items (item_id));
