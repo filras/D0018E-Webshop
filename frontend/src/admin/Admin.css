@@ -33,8 +33,15 @@
 
 .admin-table th, .admin-table td {
   border: 1px solid white;
+  padding: 5px;
 }
 
 .admin-table-manage {
-  margin-left: 20px;
+  border: none !important;
+  display: flex;
+  justify-content: center;
+}
+
+.admin-table-editing input {
+  width: 100%;
 }

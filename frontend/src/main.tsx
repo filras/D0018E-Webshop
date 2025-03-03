@@ -27,6 +27,7 @@ const  App = () => {
     if (userRequest.ok) {
       const user: User = await userRequest.json();
       setUser({
+        user_id: user.id,
         username: user.username,
         firstname: user.firstname,
         is_admin: user.role === "admin",
@@ -34,10 +35,11 @@ const  App = () => {
     }
     setLoading(false);
   }
-
+  
   // Set user from login/register
   const handleLogin = (user: User) => {
     setUser({
+      user_id: user.id,
       username: user.username,
       firstname: user.firstname,
       is_admin: user.role === "admin",
@@ -71,7 +73,7 @@ const  App = () => {
           <Route path="/shoppingcart" element={<ShoppingCart/>}/>
           <Route path="/admin/*" element={
             <ProtectedRoute user={user} requireAdmin>
-              <AdminPanel />
+              <AdminPanel user_id={user?.user_id || 0 /* User will always exist inside ProtectedRoutes, so this is safe */} />
             </ProtectedRoute>
           }>
             <Route path="users" />

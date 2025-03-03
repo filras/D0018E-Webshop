@@ -5,10 +5,10 @@ import "./Admin.css"
 import Users from "./Users";
 
 type Props = {
-
+  user_id: number
 };
 
-export default function AdminPanel({}: Props) {
+export default function AdminPanel({ user_id }: Props) {
   return (
     <div className="admin-container">
       <div className="admin-sidebar">
@@ -21,7 +21,7 @@ export default function AdminPanel({}: Props) {
       <div className="admin-content">
         <Routes>
           <Route index element={<p>AdminPanel</p>} />
-          <Route path="users" element={<Users />} />
+          <Route path="users" element={<Users user_id={user_id} />} />
           <Route path="items" element={<p>Items</p>} />
           <Route path="orders" element={<p>Orders</p>} />
         </Routes>

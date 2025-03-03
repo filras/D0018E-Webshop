@@ -2,6 +2,7 @@ import { PropsWithChildren } from "react";
 import { Navigate } from "react-router";
 
 export interface AuthUser {
+  user_id: number;
   username: string;
   firstname: string;
   is_admin: boolean;
