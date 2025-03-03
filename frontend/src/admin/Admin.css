@@ -1,0 +1,45 @@
+.admin-container {
+  display: flexbox;
+}
+
+.admin-grid {
+  display: grid;
+  height: 100%;
+  grid-template-columns: 300px auto;
+  grid-template-rows: auto;
+  grid-template-areas: "sidebar content";
+}
+
+.admin-sidebar {
+  grid-area: sidebar;
+  background-color: rgb(32, 32, 32);
+}
+
+.admin-links {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.admin-content {
+  grid-area: content;
+  margin: 30px;
+}
+
+.admin-title {
+  margin: 0 0 20px;
+}
+
+/* Table */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-table th, .admin-table td {
+  border: 1px solid white;
+}
+
+.admin-table-manage {
+  margin-left: 20px;
+}

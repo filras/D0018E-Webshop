@@ -15,7 +15,7 @@ import { BrowserRouter, Routes, Route } from "react-router";
 import { useEffect, useState } from 'react';
 import { AuthUser, ProtectedRoute } from './auth/ProtectedRoute.tsx';
 import { API_URL, BASE_URL } from './etc/api_url.ts';
-import { Navigation } from './navbar/Navigation.tsx';
+import Navigation from './navbar';
 
 // Create app component with auth hooks
 const  App = () => {
@@ -68,7 +68,7 @@ const  App = () => {
           </ProtectedRoute>
         }/>
         <Route path="/shoppingcart" element={<ShoppingCart/>}/>
-        <Route path="/admin" element={
+        <Route path="/admin/*" element={
           <ProtectedRoute user={user} requireAdmin>
             <AdminPanel />
           </ProtectedRoute>

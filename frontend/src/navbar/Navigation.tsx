@@ -1,6 +1,7 @@
 import { Link } from 'react-router';
 import { AuthUser } from '../auth/ProtectedRoute';
 
+import flygplan from "../assets/flygplan.png"
 import "./Navigation.css"
 
 interface Props {
@@ -11,9 +12,12 @@ interface Props {
 
 export function Navigation({ user, loadingUser, performLogout }: Props) {
   return (
-    <div className="navbar">
+    <nav className="navbar">
       <div className="navbar-left">
-        <h1 className="navbar-title"><Link to="/">PlaneShop</Link></h1>
+        <Link to="/" className="navbar-home-link">
+          <img src={flygplan} className='logo' alt='flygplan'/>
+          <h1 className="navbar-title">PlaneShop</h1>
+        </Link>
       </div>
       <div className="navbar-right">
         <ul className="navbar-links">
@@ -26,6 +30,6 @@ export function Navigation({ user, loadingUser, performLogout }: Props) {
         </ul>
         <p>{loadingUser ? "Loading user..." : user?.username} {user !== null && <button onClick={performLogout}>Log out</button>} </p>
       </div>
-    </div>
+    </nav>
   )
 }

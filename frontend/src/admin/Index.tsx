@@ -1,23 +1,33 @@
-import { Component } from "react";
+import { Link, Route, Routes } from "react-router";
+
+import "./Admin.css"
+
+import Users from "./Users";
 
 type Props = {
 
 };
 
-type State = {
-  
-};
-
-export default class AdminPanel extends Component<Props, State> {
-  
-  render() {
-
-    return (
-      <div>
-        <p>Hello, world!</p>
-        {/* <p>IsAuthed? {currentUser.authed}</p>
-        <p>Username: {currentUser.username}</p> */}
+export default function AdminPanel({}: Props) {
+  return (
+    <div className="admin-container">
+      <div className="admin-grid">
+        <div className="admin-sidebar">
+          <ul className="admin-links">
+            <Link to="/admin/users" className="admin-link">Users</Link>
+            <Link to="/admin/items" className="admin-link">Items</Link>
+            <Link to="/admin/orders" className="admin-link">Orders</Link>
+          </ul>
+        </div>
+        <div className="admin-content">
+          <Routes>
+            <Route index element={<p>AdminPanel</p>} />
+            <Route path="users" element={<Users />} />
+            <Route path="items" element={<p>Items</p>} />
+            <Route path="orders" element={<p>Orders</p>} />
+          </Routes>
+        </div>
       </div>
-    )
-  }
+    </div>
+  )
 }
