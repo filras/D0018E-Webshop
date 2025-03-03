@@ -67,7 +67,7 @@ async fn handle_login(
 
     create_user_session(cookies, user.id);
 
-    (StatusCode::OK, Json(user)).into_response()
+    format!("Logged in as {}", user.username).into_response()
 }
 
 // Handles the /logout path that logs out the current user if they are signed in

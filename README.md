@@ -74,10 +74,3 @@ cargo run --release
 ```
 
 The backend will try to serve the frontend from the `/frontend/dist` directory, so remember to `build` the frontend first if you want it to be served properly. This is of course not necessary when only testing out the API, however.
-
-### Run in dev mode with docker
-
-To run in dev mode, but still use docker (e.g. if you don't want to or can't install mariadb locally), use the dev compose file:
-```bash
-docker compose -f docker-compose-dev.yml up --build
-```
