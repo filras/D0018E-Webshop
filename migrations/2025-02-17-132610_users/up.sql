@@ -10,5 +10,5 @@ CREATE TABLE users (
     zipcode VARCHAR(255),
     co VARCHAR(255),
     country VARCHAR(255),
-    UNIQUE (username),
+    UNIQUE (username)
 );
