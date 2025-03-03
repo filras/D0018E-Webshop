@@ -22,7 +22,7 @@ interface Product{
 
 function App() {
   return (
-    <>
+    <div className="homepage">
     <head></head>
     <style></style>
 
@@ -105,7 +105,7 @@ function App() {
         </p>
         </div>
         </div>          
-    </>
+    </div>
   )
 }
 

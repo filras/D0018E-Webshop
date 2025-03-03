@@ -6,70 +6,51 @@ use axum::{
     routing::get,
     Router,
 };
-use diesel::{
-    prelude::*,
-    dsl::insert_into,
-};
-use serde::Deserialize;
+use diesel::prelude::*;
 
 use crate::{
-    schema::items::{dsl::items, *},
     db::{
         connect_to_db,
-        models::{Item, NewItem},
-    }
+        models::{Item, PaginatedSearchQuery},
+    }, schema::items::{dsl::items, title}
 };
 
-fn default_page() -> usize {
-    1
-}
-fn default_per_page() -> usize {
-    10
-}
-#[derive(Debug, Deserialize)]
-struct Pagination {
-    #[serde(default = "default_page")]
-    page: usize,
-    #[serde(default = "default_per_page")]
-    per_page: usize,
-}
-
-// routes for api
-
 pub fn routes() -> Router {
-    Router::new().route("/items", get(get_items).post(post_items))
+    Router::new()
+        .route("/items", get(get_items))
 }
 
-async fn get_items(pagination: Query<Pagination>) -> impl IntoResponse {
-    let pagination: Pagination = pagination.0;
+// Perform a paginated GET for items, with optional search string
+async fn get_items(query: Query<PaginatedSearchQuery>) -> impl IntoResponse {
+    let query: PaginatedSearchQuery = query.0;
     let conn = &mut connect_to_db();
-
-    return match items
-        .offset(((pagination.page - 1) * pagination.per_page) as i64)
-        .limit(pagination.per_page as i64)
-        .select(Item::as_select())
-        .load::<Item>(conn) {
-            Ok(results) => (StatusCode::OK, Json(results)).into_response(),
-            Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response()
+    
+    // Make different queries depending on if we're searching for username
+    let query_results = match query.search {
+        // Include only results filtered with search_string on username
+        Some(search_string) => {
+            items
+                .select(Item::as_select())
+                .filter(
+                    title.like(format!("%{}%",search_string))
+                )
+                .offset(((query.page - 1) * query.per_page) as i64)
+                .limit(query.per_page as i64)
+                .load::<Item>(conn)
+        },
+        // Include all paginated results
+        None => {
+            items
+                .select(Item::as_select())
+                .offset(((query.page - 1) * query.per_page) as i64)
+                .limit(query.per_page as i64)
+                .load::<Item>(conn)
         }
-}
+    };
 
-async fn post_items(data: Json<NewItem>) -> impl IntoResponse {
-    let rcv_item: NewItem = data.0;
-    let conn = &mut connect_to_db();
-    let values = (
-        title.eq(rcv_item.title),
-        description.eq(rcv_item.description),
-        price.eq(rcv_item.price),
-        in_stock.eq(rcv_item.in_stock),
-        average_rating.eq(rcv_item.average_rating),
-        discounted_price.eq(rcv_item.discounted_price),
-    );
-
-    return match insert_into(items)
-        .values(values)
-        .execute(conn) {
-        Ok(_) => (StatusCode::OK, "Item recieved".to_string()),
-        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
+    // Make results into response
+    match query_results {
+        Ok(results) => (StatusCode::OK, Json(results)).into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response()
     }
 }

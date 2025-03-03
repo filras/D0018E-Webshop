@@ -1,0 +1,25 @@
+
+# Build frontend
+FROM node:latest AS frontend-builder
+WORKDIR /app
+COPY frontend/package*.json ./
+RUN npm install
+COPY ./frontend .
+RUN npm run build
+
+# Build backend
+FROM rust:latest AS backend
+WORKDIR /app
+# Build dependencies
+COPY Cargo.toml Cargo.lock /app/
+RUN mkdir /app/src && echo "fn main() {}" > /app/src/main.rs
+RUN cargo build && rm -rf /app/src
+# Build diesel_cli binary
+RUN cargo install diesel_cli --no-default-features --features mysql
+# Build main app
+COPY . .
+RUN touch /app/src/main.rs && cargo build
+
+# Run the diesel migration, then start the backend
+ENV DATABASE_URL=mysql://root:root@database/webshop
+CMD ["/bin/bash", "-c", "diesel migration run && /app/target/debug/main"]
