@@ -21,7 +21,7 @@ export function Navigation({ user, loadingUser, performLogout }: Props) {
       </div>
       <div className="navbar-right">
         <ul className="navbar-links">
-          <Link to="/admin">Admin</Link>
+          {user?.is_admin && (<Link to="/admin">Admin</Link>)}
           <Link to="/shoppingcart">ShoppingCart</Link>
           { !loadingUser && !user && ( <>
             <Link to="/login">Login</Link>

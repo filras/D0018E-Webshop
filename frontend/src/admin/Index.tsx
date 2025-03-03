@@ -3,6 +3,7 @@ import { Link, Route, Routes } from "react-router";
 import "./Admin.css"
 
 import Users from "./Users";
+import Items from "./Items";
 
 type Props = {
   user_id: number
@@ -20,9 +21,9 @@ export default function AdminPanel({ user_id }: Props) {
       </div>
       <div className="admin-content">
         <Routes>
-          <Route index element={<p>AdminPanel</p>} />
+          <Route index element={<h3>Select a function on the panel to the left to manage the shop</h3>} />
           <Route path="users" element={<Users user_id={user_id} />} />
-          <Route path="items" element={<p>Items</p>} />
+          <Route path="items" element={<Items />} />
           <Route path="orders" element={<p>Orders</p>} />
         </Routes>
       </div>

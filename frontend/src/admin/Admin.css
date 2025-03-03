@@ -16,6 +16,11 @@
   flex-direction: column;
 }
 
+.admin-link {
+  color: white;
+  font-size: 36px;
+}
+
 .admin-content {
   flex: 1 1 auto;
   padding: 30px;
@@ -23,6 +28,19 @@
 
 .admin-title {
   margin: 0 0 20px;
+}
+
+.admin-section {
+  margin: 10px 0;
+}
+
+.admin-section p {
+  display: inline;
+  margin: 0 10px;
+}
+
+.admin-create input {
+  display: block;
 }
 
 /* Table */

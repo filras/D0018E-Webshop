@@ -72,7 +72,8 @@ interface RowProps {
 }
 function EditUserRow({ user, own_id, editUser, deleteUser }: RowProps) {
   const [editActive, setEditActive] = useState<boolean>(false);
-  const userData = user;
+  // Clone user to allow "rollback" to previous data on cancel
+  const userData: User = structuredClone(user);
 
   // If editActive, turn the data into text inputs and change the buttons to Cancel/Save
   if (editActive) {
