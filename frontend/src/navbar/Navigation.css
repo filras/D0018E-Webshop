@@ -1,0 +1,42 @@
+.navbar {
+  background-color: #161616;
+  display: grid;
+  grid-template-columns: auto auto;
+
+  height: 120px;
+}
+
+.navbar * {
+  margin: 0;
+  padding: 0;
+}
+
+.navbar-left {
+  justify-self: left;
+  display: flex;
+  align-items: center;
+
+  padding-left: 50px;
+}
+
+.navbar-right {
+  justify-self: right;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  padding-right: 30px;
+}
+
+.navbar > h1 {
+  font-size: 36px;
+}
+
+.navbar-links {
+  margin: 10px 30px;
+}
+
+.navbar-links * {
+  font-size: 32px;
+  margin: 10px;
+}

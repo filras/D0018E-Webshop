@@ -88,7 +88,7 @@ async fn handle_post(ctx: Result<Ctx, String>, cookies: Cookies, data: Json<NewU
     // Create user session and return success
     let user = read_result.unwrap();
     session::create_user_session(cookies, user.id);
-    return (StatusCode::OK, format!("Created account {}", user.username)).into_response()
+    return (StatusCode::OK, Json(user)).into_response()
 }
 
 async fn handle_put(ctx: Result<Ctx, String>, data: Json<UpdateUser>) -> impl IntoResponse {
