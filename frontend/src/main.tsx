@@ -55,27 +55,29 @@ const  App = () => {
   return (
     <>
       <Navigation user={user} loadingUser={loading} performLogout={performLogout} />
-      <Routes>
-        <Route path="/" element={<Homepage />} />
-        <Route path="/login" element={
-          <ProtectedRoute user={user} requireUnauthed>
-            <Login user={user} setUser={handleLogin} />
-          </ProtectedRoute>
-        }/>
-        <Route path="/register" element={
-          <ProtectedRoute user={user} requireUnauthed>
-            <Register user={user} setUser={handleLogin}/>
-          </ProtectedRoute>
-        }/>
-        <Route path="/shoppingcart" element={<ShoppingCart/>}/>
-        <Route path="/admin/*" element={
-          <ProtectedRoute user={user} requireAdmin>
-            <AdminPanel />
-          </ProtectedRoute>
-        }>
-          <Route path="users" />
-        </Route>
-      </Routes>
+      <div id="page-content">
+        <Routes>
+          <Route path="/" element={<Homepage />} />
+          <Route path="/login" element={
+            <ProtectedRoute user={user} requireUnauthed>
+              <Login user={user} setUser={handleLogin} />
+            </ProtectedRoute>
+          }/>
+          <Route path="/register" element={
+            <ProtectedRoute user={user} requireUnauthed>
+              <Register user={user} setUser={handleLogin}/>
+            </ProtectedRoute>
+          }/>
+          <Route path="/shoppingcart" element={<ShoppingCart/>}/>
+          <Route path="/admin/*" element={
+            <ProtectedRoute user={user} requireAdmin>
+              <AdminPanel />
+            </ProtectedRoute>
+          }>
+            <Route path="users" />
+          </Route>
+        </Routes>
+      </div>
     </>
   )
 }

@@ -1,4 +1,5 @@
 .navbar {
+  flex: 0 1 auto;
   background-color: #161616;
   display: grid;
   grid-template-columns: auto auto;
