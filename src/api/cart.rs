@@ -5,7 +5,7 @@ use crate::{
         models::{CartItems, Item, User},
     },
     schema::{
-        cart_items::{self, user_id},
+        cart_items::{self, amount, item_id, user_id},
         items, users,
     },
 };
@@ -37,12 +37,12 @@ async fn get_cart(ctx: Result<Ctx, String>) -> impl IntoResponse {
     //  .select(User::as_select())
     // .first::<User>(conn);
 
-    let result: Vec<Item> = CartItems::belonging_to(&user_obj)
+    let result = CartItems::belonging_to(&user_obj)
         .inner_join(items::table)
-        .select(Item::as_select())
-        .load(conn)
+        .select((CartItems::as_select(), Item::as_select()))
+        .load::<(CartItems, Item)>(conn)
         .unwrap();
-    (StatusCode::OK, Json(result).into_response())
+    return (StatusCode::OK, Json(result).into_response());
 }
 
 #[derive(Deserialize, AsChangeset)]
@@ -56,12 +56,31 @@ async fn put_cart(ctx: Result<Ctx, String>, data: Json<UpdateCart>) -> impl Into
     let rcv_items: UpdateCart = data.0;
     let conn = &mut connect_to_db();
 
-    return match diesel::update(cart_items::table)
-        .filter(user_id.eq(user.user_id()))
-        .set(rcv_items)
-        .execute(conn)
-    {
-        Ok(_) => (StatusCode::OK, "Cart updated").into_response(),
-        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
-    };
+    let values = (
+        user_id.eq(user.user_id()),
+        item_id.eq(rcv_items.item_id),
+        amount.eq(rcv_items.amount),
+    );
+
+    // Insert new user into DB
+    let result = diesel::insert_into(cart_items::table)
+        .values(values)
+        .execute(conn);
+    if result.is_err() {
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Error while adding to cart",
+        )
+            .into_response();
+    }
+
+    // return match diesel::update(cart_items::table)
+    //    .filter(user_id.eq(user.user_id()))
+    //    .set(rcv_items)
+    //    .execute(conn)
+    //   {
+    //    Ok(_) => (StatusCode::OK, "Cart updated").into_response(),
+    //    Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    //bin.usr-is-merged  };
+    return (StatusCode::OK, "cart updated").into_response();
 }
