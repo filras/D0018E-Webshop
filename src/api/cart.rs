@@ -84,6 +84,28 @@ async fn put_cart(ctx: Result<Ctx, String>, data: Json<UpdateCart>) -> impl Into
         amount.eq(rcv_items.amount),
     );
 
+    let item_in_cart = cart_items::table
+        .filter(user_id.eq(user.user_id()))
+        .filter(item_id.eq(rcv_items.item_id))
+        .select(CartItems::as_select())
+        .first::<CartItems>(conn);
+    if item_in_cart.is_ok() {
+        let result = diesel::update(cart_items::table)
+            .filter(user_id.eq(user.user_id()))
+            .filter(item_id.eq(rcv_items.item_id))
+            .set(values)
+            .execute(conn);
+        if result.is_err() {
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Error while adding to cart",
+            )
+                .into_response();
+        }
+
+        return (StatusCode::OK, "Cart updated").into_response();
+    }
+
     // Insert new user into DB
     let result = diesel::insert_into(cart_items::table)
         .values(values)
@@ -96,13 +118,5 @@ async fn put_cart(ctx: Result<Ctx, String>, data: Json<UpdateCart>) -> impl Into
             .into_response();
     }
 
-    // return match diesel::update(cart_items::table)
-    //    .filter(user_id.eq(user.user_id()))
-    //    .set(rcv_items)
-    //    .execute(conn)
-    //   {
-    //    Ok(_) => (StatusCode::OK, "Cart updated").into_response(),
-    //    Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
-    //bin.usr-is-merged  };
-    return (StatusCode::OK, "cart updated").into_response();
+    return (StatusCode::OK, "Item added").into_response();
 }
