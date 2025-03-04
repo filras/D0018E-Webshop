@@ -2,7 +2,7 @@ use crate::{
     auth::{self, ctx::Ctx},
     db::{
         connect_to_db,
-        models::{CartItems, User},
+        models::{CartItems, IdQuery, User},
     },
     schema::{
         cart_items::{self, amount, item_id, user_id},
@@ -23,7 +23,7 @@ use serde::{Deserialize, Serialize};
 
 pub fn routes() -> Router {
     Router::new()
-        .route("/cart", get(get_cart).put(put_cart))
+        .route("/cart", get(get_cart).put(put_cart).delete(delete_cart))
         .layer(middleware::from_fn(auth::middleware::require_auth))
 }
 
@@ -119,4 +119,22 @@ async fn put_cart(ctx: Result<Ctx, String>, data: Json<UpdateCart>) -> impl Into
     }
 
     return (StatusCode::OK, "Item added").into_response();
+}
+
+async fn delete_cart(ctx: Result<Ctx, String>, id_query: Query<IdQuery>) -> impl IntoResponse {
+    let user = ctx.unwrap();
+    let conn = &mut connect_to_db();
+    let rcv_id: IdQuery = id_query.0;
+
+    let result = diesel::delete(
+        cart_items::table
+            .filter(user_id.eq(user.user_id()))
+            .filter(item_id.eq(rcv_id.id)),
+    )
+    .execute(conn);
+    if result.is_ok() {
+        return (StatusCode::OK, "Item deleted");
+    }
+
+    return (StatusCode::INTERNAL_SERVER_ERROR, "Item deletion failed");
 }
