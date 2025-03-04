@@ -1,7 +1,7 @@
 use axum::{
     http::StatusCode, middleware, response::IntoResponse, routing::{get, post, put}, Json, Router
 };
-use diesel::{query_dsl::methods::{FilterDsl, SelectDsl}, ExpressionMethods, RunQueryDsl, SelectableHelper};
+use diesel::{query_dsl::methods::{FilterDsl, SelectDsl}, result::Error, ExpressionMethods, RunQueryDsl, SelectableHelper};
 use serde::Deserialize;
 use tower_cookies::{cookie::time::Duration, Cookie, Cookies};
 
@@ -52,7 +52,11 @@ async fn handle_login(
 
     // Handle error conditions
     if result.is_err() {
-        return (StatusCode::INTERNAL_SERVER_ERROR, format!("Database error: {}", result.err().unwrap())).into_response()
+        let error_type = result.unwrap_err();
+        return match error_type {
+            Error::NotFound => (StatusCode::BAD_REQUEST, format!("No user with the username {} exists", login.username)).into_response(),
+            _ => (StatusCode::INTERNAL_SERVER_ERROR, format!("Database error: {}", error_type)).into_response(),
+        }
     }
     
     // Verify the password hash with bcrypt

@@ -8,6 +8,7 @@ use axum::{
 };
 
 use diesel::{self, dsl::{delete, insert_into}, prelude::*};
+use regex::Regex;
 use tower_cookies::Cookies;
 
 use crate::{
@@ -33,13 +34,30 @@ async fn handle_post(ctx: Result<Ctx, String>, cookies: Cookies, data: Json<NewU
     if ctx.is_ok() {
         return (StatusCode::BAD_REQUEST, "Already logged in").into_response()
     }
+    
+    let new_user: NewUser = data.0;
+    
+    // Validate input
+    // Test email (regexp from https://regex101.com/r/lHs2R3/1) (except the special case of =admin)
+    if new_user.email == "admin" ||
+        Regex::new(r"^[\w\-\.]+@([\w-]+\.)+[\w-]{2,}$").unwrap().is_match(new_user.email.as_str()) == false {
+        return (StatusCode::BAD_REQUEST, "Invalid email").into_response()
+    }
+    // Test password
+    if new_user.password.len() < 3 || new_user.password.len() > 30 {
+        return (StatusCode::BAD_REQUEST, "Password must be between 3 and 30 chars long").into_response()
+    }
+    // Test name
+    if new_user.firstname.len() < 2 || new_user.surname.len() < 2 ||
+        new_user.firstname.len() > 20 || new_user.surname.len() > 20 {
+        return (StatusCode::BAD_REQUEST, "Firstname/surname must be between 2 and 20 chars long").into_response()
+    }
 
-    let rcv_user: NewUser = data.0;
     let conn = &mut connect_to_db();
     
     // Check for duplicate user
     let user_exists_result = users
-        .filter(username.eq(rcv_user.email.clone()))
+        .filter(username.eq(new_user.email.clone()))
         .select(User::as_select())
         .first::<User>(conn);
     if user_exists_result.is_ok() {
@@ -47,24 +65,24 @@ async fn handle_post(ctx: Result<Ctx, String>, cookies: Cookies, data: Json<NewU
     }
 
     // Create password hash
-    let hash = bcrypt::hash(rcv_user.password, 12);
+    let hash = bcrypt::hash(new_user.password, 12);
     if hash.is_err() {
         return (StatusCode::INTERNAL_SERVER_ERROR, "Unable to hash password").into_response()
     }
 
     // Special case: if the username is given as "admin", set their role to admin
     // This is to allow the first user to become admin and create other admins
-    let new_user_role = match rcv_user.email == "admin" {
+    let new_user_role = match new_user.email == "admin" {
         true => "admin".to_string(),
         false => "customer".to_string(),
     };
 
     let values = (
-        username.eq(rcv_user.email.clone()),
+        username.eq(new_user.email.clone()),
         password_hash.eq(hash.unwrap()),
-        firstname.eq(rcv_user.firstname),
-        surname.eq(rcv_user.surname),
-        email.eq(rcv_user.email.clone()),
+        firstname.eq(new_user.firstname),
+        surname.eq(new_user.surname),
+        email.eq(new_user.email.clone()),
         role.eq(new_user_role),
     );
 
@@ -78,7 +96,7 @@ async fn handle_post(ctx: Result<Ctx, String>, cookies: Cookies, data: Json<NewU
     
     // Query the DB for the new user to retrieve the user's id and create a session for them
     let read_result = users
-        .filter(username.eq(rcv_user.email.clone()))
+        .filter(username.eq(new_user.email.clone()))
         .select(User::as_select())
         .first::<User>(conn);
     if read_result.is_err() {

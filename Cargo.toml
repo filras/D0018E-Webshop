@@ -22,6 +22,7 @@ tracing-subscriber = { version = "0.3.16", features = ["env-filter"]}
 bcrypt = "0.17.0"
 chrono = "0.4.40"
 tsync = "2.2.1"
+regex = "1.11.1"
 
 [[bin]]
 name = "main"
