@@ -1,3 +1,4 @@
+import { useState } from "react";
 import flygplan from "../assets/flygplan.png"
 import { API_URL } from "../etc/api_url";
 import { AuthUser } from "./ProtectedRoute";
@@ -10,6 +11,7 @@ interface Props {
 
 export default function Register({ setUser }: Props) {
   const navigate = useNavigate();
+  const [error, setError] = useState("");
 
   async function handleSubmit(e: any) {
     e.preventDefault();
@@ -27,7 +29,10 @@ export default function Register({ setUser }: Props) {
     })
 
     // If account creation succeeded, take the response user json and set user
-    if (registerResult.ok) {
+    if (!registerResult.ok) {
+      // Alert with error message
+      setError(await registerResult.text())
+    } else {
       const user: User = await registerResult.json();
       setUser(user);
       navigate("/");
@@ -37,6 +42,7 @@ export default function Register({ setUser }: Props) {
   return (
     <div>
       <h1>Register Account</h1>
+      { error && (<p>{error}</p>) }
       <form method="post" onSubmit={handleSubmit}> 
         <input type="text" name="email" placeholder="email" />
         <br />

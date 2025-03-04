@@ -12,6 +12,7 @@ dependencies = [
  "diesel",
  "dotenv",
  "dotenvy",
+ "regex",
  "serde",
  "serde_json",
  "strum_macros",

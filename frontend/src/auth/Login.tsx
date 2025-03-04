@@ -31,7 +31,6 @@ export default function Login({ user, setUser }: Props) {
     const formJson = Object.fromEntries(formData.entries());
     const result = await fetch(BASE_URL + "/auth/login", { headers: { "Content-Type": "application/json" }, method: "post", body: JSON.stringify(formJson) });
     
-    console.log(result.ok);
     if (!result.ok) {
       // Alert with error message
       setError(await result.text())
