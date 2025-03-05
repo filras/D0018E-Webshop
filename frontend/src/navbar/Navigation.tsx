@@ -15,7 +15,7 @@ export function Navigation({ user, loadingUser, performLogout }: Props) {
     <nav className="navbar">
       <div className="navbar-left">
         <Link to="/" className="navbar-home-link">
-          <img src={flygplan} className='logo' alt='flygplan'/>
+          <img src={flygplan} className='navbar-logo' alt='flygplan'/>
           <h1 className="navbar-title">PlaneShop</h1>
         </Link>
       </div>

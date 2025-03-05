@@ -2,6 +2,9 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import Homepage from './App.tsx'
 
+// Products 
+
+
 // Auth
 import Login from './auth/Login.tsx';
 import Register from "./auth/Register.tsx"
