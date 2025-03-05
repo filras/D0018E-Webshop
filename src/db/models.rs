@@ -144,6 +144,8 @@ pub struct UpdateUserAsAdmin {
     PartialEq,
 )]
 #[diesel(table_name = reviews)]
+#[diesel(belongs_to(User))]
+#[diesel(belongs_to(Item))]
 #[diesel(primary_key(user_id, item_id))]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
 #[tsync]
@@ -176,4 +178,16 @@ pub struct PaginatedSearchQuery {
     pub per_page: usize,
 
     pub search: Option<String>,
+}
+
+// Generic paginated id query (query by id)
+#[derive(Debug, Deserialize)]
+#[tsync]
+pub struct PaginatedIdQuery {
+    #[serde(default = "default_page")]
+    pub page: usize,
+    #[serde(default = "default_per_page")]
+    pub per_page: usize,
+
+    pub id: i32,
 }

@@ -6,10 +6,13 @@ mod account;
 mod api;
 mod admin;
 mod cart;
+mod reviews;
 
 pub fn router() -> Router {
     Router::new()
         .merge(api::routes()
+            .route_layer(middleware::from_fn(require_auth)))
+        .merge(reviews::routes()
             .route_layer(middleware::from_fn(require_auth)))
         .merge(account::routes())
         .nest("/admin", admin::router()
