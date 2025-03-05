@@ -1,7 +1,7 @@
 use crate::schema::*;
 use diesel::prelude::*;
 use diesel::Queryable;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 // Tsync syncs types from Rust to the frontend in TS
 // To perform a sync, add #[tsync] to the struct and sync with `cargo run --bin tsync`
@@ -84,7 +84,7 @@ pub struct User {
     pub country: Option<String>,
 }
 
-#[derive(Identifiable, Selectable, Queryable, Associations, Debug, PartialEq, Eq)]
+#[derive(Identifiable, Selectable, Queryable, Associations, Debug, PartialEq, Eq, Serialize)]
 #[diesel(belongs_to(User))]
 #[diesel(belongs_to(Item))]
 #[diesel(table_name = cart_items)]

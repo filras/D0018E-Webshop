@@ -22,6 +22,34 @@ diesel::table! {
 }
 
 diesel::table! {
+    order_items (order_id, item_id) {
+        order_id -> Integer,
+        item_id -> Integer,
+        amount -> Integer,
+        total -> Integer,
+    }
+}
+
+diesel::table! {
+    orders (id) {
+        id -> Integer,
+        user_id -> Integer,
+        #[max_length = 255]
+        address -> Varchar,
+        #[max_length = 255]
+        co -> Nullable<Varchar>,
+        #[max_length = 255]
+        zipcode -> Varchar,
+        #[max_length = 255]
+        country -> Varchar,
+        total -> Integer,
+        #[max_length = 255]
+        comment -> Nullable<Varchar>,
+        payment_completed -> Bool,
+    }
+}
+
+diesel::table! {
     users (id) {
         id -> Integer,
         #[max_length = 255]
@@ -47,6 +75,10 @@ diesel::table! {
     }
 }
 
-diesel::allow_tables_to_appear_in_same_query!(cart_items, items, users,);
-
-diesel::joinable!(cart_items -> items (item_id));
+diesel::allow_tables_to_appear_in_same_query!(
+    cart_items,
+    items,
+    order_items,
+    orders,
+    users,
+);
