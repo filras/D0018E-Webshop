@@ -27,6 +27,7 @@ pub fn routes() -> Router {
         .layer(middleware::from_fn(auth::middleware::require_auth))
 }
 
+// Struct used to return cart and item join as one object
 #[derive(Serialize, Queryable)]
 struct CombinedCartItem {
     item_id: i32,
@@ -44,10 +45,6 @@ async fn get_cart(ctx: Result<Ctx, String>) -> impl IntoResponse {
     let conn = &mut connect_to_db();
 
     let user_obj: User = users::table.find(user.user_id()).first(conn).unwrap();
-
-    // .filter(id.eq(user.user_id()))
-    //  .select(User::as_select())
-    // .first::<User>(conn);
 
     let result = CartItems::belonging_to(&user_obj)
         .inner_join(items::table.on(items::id.eq(cart_items::item_id)))
@@ -78,12 +75,31 @@ async fn put_cart(ctx: Result<Ctx, String>, data: Json<UpdateCart>) -> impl Into
     let rcv_items: UpdateCart = data.0;
     let conn = &mut connect_to_db();
 
+    // Deletes item if given amount <= 0
+    if rcv_items.amount <= 0 {
+        let result = diesel::delete(
+            cart_items::table
+                .filter(user_id.eq(user.user_id()))
+                .filter(item_id.eq(rcv_items.item_id)),
+        )
+        .execute(conn);
+        if result.is_err() {
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Error while deleteing item",
+            )
+                .into_response();
+        }
+        return (StatusCode::OK, "Item deleted").into_response();
+    }
+
     let values = (
         user_id.eq(user.user_id()),
         item_id.eq(rcv_items.item_id),
         amount.eq(rcv_items.amount),
     );
 
+    // Check if recived item is already in the cart and updates the cart if that is the case
     let item_in_cart = cart_items::table
         .filter(user_id.eq(user.user_id()))
         .filter(item_id.eq(rcv_items.item_id))
@@ -106,7 +122,7 @@ async fn put_cart(ctx: Result<Ctx, String>, data: Json<UpdateCart>) -> impl Into
         return (StatusCode::OK, "Cart updated").into_response();
     }
 
-    // Insert new user into DB
+    // Insert a new item into the cart
     let result = diesel::insert_into(cart_items::table)
         .values(values)
         .execute(conn);
