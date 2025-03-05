@@ -22,6 +22,16 @@ diesel::table! {
 }
 
 diesel::table! {
+    reviews (user_id, item_id) {
+        user_id -> Integer,
+        item_id -> Integer,
+        rating -> Integer,
+        #[max_length = 255]
+        comment -> Nullable<Varchar>,
+    }
+}
+
+diesel::table! {
     users (id) {
         id -> Integer,
         #[max_length = 255]
@@ -47,6 +57,11 @@ diesel::table! {
     }
 }
 
-diesel::allow_tables_to_appear_in_same_query!(cart_items, items, users,);
+diesel::allow_tables_to_appear_in_same_query!(
+    cart_items,
+    items,
+    reviews,
+    users,
+);
 
 diesel::joinable!(cart_items -> items (item_id));

@@ -133,6 +133,27 @@ pub struct UpdateUserAsAdmin {
     pub country: Option<String>,
 }
 
+#[derive(
+    Queryable,
+    Insertable,
+    Identifiable,
+    Selectable,
+    serde::Serialize,
+    serde::Deserialize,
+    Debug,
+    PartialEq,
+)]
+#[diesel(table_name = reviews)]
+#[diesel(primary_key(user_id, item_id))]
+#[diesel(check_for_backend(diesel::mysql::Mysql))]
+#[tsync]
+pub struct Review {
+    pub user_id: i32,
+    pub item_id: i32,
+    pub comment: Option<String>,
+    pub rating: i32,
+}
+
 // Generic query by ID
 #[derive(Deserialize)]
 pub struct IdQuery {
