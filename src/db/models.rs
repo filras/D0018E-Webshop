@@ -133,6 +133,38 @@ pub struct UpdateUserAsAdmin {
     pub country: Option<String>,
 }
 
+#[derive(
+    Queryable,
+    Insertable,
+    Identifiable,
+    Selectable,
+    serde::Serialize,
+    serde::Deserialize,
+    Debug,
+    PartialEq,
+)]
+#[diesel(table_name = reviews)]
+#[diesel(belongs_to(User))]
+#[diesel(belongs_to(Item))]
+#[diesel(primary_key(user_id, item_id))]
+#[diesel(check_for_backend(diesel::mysql::Mysql))]
+#[tsync]
+pub struct Review {
+    pub user_id: i32,
+    pub item_id: i32,
+    pub comment: Option<String>,
+    pub rating: i32,
+}
+
+// Used for POST /reviews
+#[derive(Deserialize)]
+#[tsync]
+pub struct NewReview {
+    pub comment: Option<String>,
+    pub rating: i32,
+}
+
+
 // Generic query by ID
 #[derive(Deserialize)]
 pub struct IdQuery {
@@ -155,4 +187,16 @@ pub struct PaginatedSearchQuery {
     pub per_page: usize,
 
     pub search: Option<String>,
+}
+
+// Generic paginated id query (query by id)
+#[derive(Debug, Deserialize)]
+#[tsync]
+pub struct PaginatedIdQuery {
+    #[serde(default = "default_page")]
+    pub page: usize,
+    #[serde(default = "default_per_page")]
+    pub per_page: usize,
+
+    pub id: i32,
 }

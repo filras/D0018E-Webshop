@@ -1,8 +1,7 @@
-#[allow(unused)]
 use axum::{
     extract::{Json, Query},
     http::StatusCode,
-    response::{IntoResponse, Response},
+    response::IntoResponse,
     routing::get,
     Router,
 };
