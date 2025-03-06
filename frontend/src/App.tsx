@@ -1,13 +1,13 @@
-import './App.css'
+import './App.css';
 // import json from "./assets/data.json" // mock data
-import flygplan from "./assets/flygplan.png"
-import TKL from "./assets/TKL.png"
-import LogInn from "./assets/LogInn.png"
-import bird1 from "./assets/bird1.jpg"
-import buynow from "./assets/buynow.png"
+import flygplan from "./assets/flygplan.png";
+import TKL from "./assets/TKL.png";
+import LogInn from "./assets/LogInn.png";
+import bird1 from "./assets/bird1.jpg";
+import buynow from "./assets/buynow.png";
 import { API_URL } from "./etc/api_url";
-import { useEffect, useState } from 'react'
-
+import { useEffect, useState } from 'react';
+import {ToastContainer, toast} from "react-toastify";
 
 
 
@@ -23,7 +23,8 @@ function App() {
         setProducts(items);
       }
       setLoading(false);
-    }
+    }  
+
     // Load products once at start of session
     useEffect(() => {loadProd();}, [])
   
@@ -74,13 +75,13 @@ function App() {
             
             <div className='card'>
               
-              <img src={bird1} className="bird-logo" alt="bird-logo"/>
+              <img src={bird1} className="bird-logo" alt="bird1"/>
               
               <button className='card-button'> 
                 <div
                     onClick={() => {
 
-                      document.getElementById(value.id.toString())?.classList.toggle("hidden")      
+                      document.getElementById(value.id.toString())?.classList.toggle("hidden") //Allows users to hide/show additional info 
                       
                     } } 
                     key={(value.id)}>{value.title}
@@ -98,12 +99,25 @@ function App() {
               </button>
               <img src={buynow} className='buynow-pic' alt="buynow"
               onClick={()=> {
-                
 
-                 // Add item to shopping cart 
+                  // const prods= fetch(API_URL + "/cart", {method: "GET"});
+                  //console.log(prods);
+                  fetch(API_URL + "/cart", {
+                  method: "PUT",
+                  body: JSON.stringify({item_id: value.id, amount: 1}),
+                  headers: new Headers({"content-type": "application/json"})
+                })
+                const notify = (message: string) => {
+                  toast.success(message);
+                };
+                
+                notify('You just bought 1 ' + value.title);
                 
               }}></img>
-                            
+              <ToastContainer 
+              theme="dark"
+              position="top-center"
+              autoClose={3000}/>     
               <br></br>
             </div>  
           ))}

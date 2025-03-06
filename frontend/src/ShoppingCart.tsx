@@ -6,17 +6,20 @@ import bird1 from "./assets/bird1.jpg";
 import "./ShoppingCart.css";
 import minus from "./assets/minusButton.png";
 import plus from "./assets/plussbutton.png";
+import { toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 
 
 
 export default function ShoppingCart() {
-  const [products, setProducts] = useState<Array<Item>>([]);
+
+  const [products, setProducts] = useState<Array<CartItem>>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   const loadProd = async () => {
-    const itemRequest = await fetch(API_URL + "/items");
+    const itemRequest = await fetch(API_URL + "/cart", {method: "GET"});
     if (itemRequest.ok) {
-      const items: Array<Item> = await itemRequest.json();
+      const items: Array<CartItem> = await itemRequest.json();
       setProducts(items);
     }
     setLoading(false);
@@ -29,13 +32,46 @@ export default function ShoppingCart() {
 
   function totalPrice() {
     let total = 0;
-    products.forEach(product => total += product.discounted_price ? product.discounted_price : product.price)
+    products.forEach(product => total += product.discounted_price ? product.discounted_price * product.amount : product.price);
     return total;
   }
 
+  async function increment(value: CartItem){
+     fetch(API_URL + "/cart", {
+      method: "GET", 
+      body: JSON.stringify(value),
+      headers: {"Content-Type": "application/json"}
+    });
+    value.amount += 1;
+    await fetch(API_URL + "/cart", {
+      method: "PUT",
+      body: JSON.stringify(value),
+      headers: {"Content-Type": "application/json"}
+  });
+
+  await loadProd();
+  }
+
+
+
+  async function decrement(value: CartItem){        
+     fetch(API_URL + "/cart", {
+      method: "GET", 
+      body: JSON.stringify(value),
+      headers: {"Content-Type": "application/json"}
+    });
+    value.amount -= 1;
+    await fetch(API_URL + "/cart", {
+      method: "PUT",
+      body: JSON.stringify(value),
+      headers: {"Content-Type": "application/json"}
+  });
+  
+  await loadProd();
+  }
  
 
-  return (
+  return (   
   <nav className="cart">
     <div className="cart-left">
       <h2 className="price">
@@ -54,16 +90,16 @@ export default function ShoppingCart() {
       Your shopping cart
     </h1>
     <br></br>    
-    {
-      !loading && products.map((value: Item) =>(
+    { 
+      !loading && products.map((value: CartItem) =>(  
         <div className='cart-product'>
               
               {<img src={bird1} className="cart-img" alt="bird-logo"/>
               }
                 <div className="product-name"
-                    key={(value.id)}>{value.title} 
+                    key={(value.item_id)}>{value.title} 
                     <br></br>
-                    id: {(value.id.toString())}
+                    id: {(value.item_id.toString())}
                     <br></br>
                   Description: {value.description}
                   <br></br>                
@@ -72,38 +108,43 @@ export default function ShoppingCart() {
                   Rating: {value.average_rating}
                   <br></br>
                   Stock: {value.in_stock}
+                  <br></br>
+                  Amount: {value.amount}
                 </div>
 
 
             <img src={minus} className='cart-plus-minus' alt="cart-plus-minus"
               onClick={()=> {
-                
-              // Remove item from users shopping cart, update price
-                 
-                
+              decrement(value);
+              const notify = (message: string) => {
+                toast.success(message);
+              };
+              notify('You just added one ' + value.title);    
               }}>
-
-              </img>
-
+            </img>
+            <ToastContainer 
+              theme="dark"
+              position="top-center"
+              autoClose={3000}/>  
             <img src={plus} className='cart-plus-minus' alt="cart-plus-minus"
               onClick={()=> {
-                
-              // Add item to users shopping cart, update price
-                 
-                
-              }}>
-
-            </img>
-
-
-                <div className='cart-price'>
-                    {value.price+"  ₺"}
-                    <br></br>        
-                </div>
+              increment(value);
+              const notify = (message: string) => {
+                toast.success(message);
+              };
               
-
-                            
-              <br></br>
+              notify('You added one ' + value.title);
+              }}>
+            </img>
+            <ToastContainer 
+              theme="dark"
+              position="top-center"
+              autoClose={3000}/>  
+            <div className='cart-price'>
+              {value.price+"  ₺"}
+              <br></br>        
+            </div>                
+            <br></br>
             </div>  
           ))}
     </div>

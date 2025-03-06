@@ -81,3 +81,14 @@ To run in dev mode, but still use docker (e.g. if you don't want to or can't ins
 ```bash
 docker compose -f docker-compose-dev.yml up --build
 ```
+
+### Toastify for notifications
+#### Install
+ ```bash
+$ npm install --save react-toastify
+$ yarn add react-toastify
+ ```
+#### Further docs
+``` bash 
+https://github.com/fkhadra/react-toastify
+``` 
