@@ -156,6 +156,15 @@ pub struct Review {
     pub rating: i32,
 }
 
+// Used for POST /reviews
+#[derive(Deserialize)]
+#[tsync]
+pub struct NewReview {
+    pub comment: Option<String>,
+    pub rating: i32,
+}
+
+
 // Generic query by ID
 #[derive(Deserialize)]
 pub struct IdQuery {
