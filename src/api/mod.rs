@@ -1,10 +1,10 @@
 use axum::{http::StatusCode, middleware, response::IntoResponse, Router};
 
-use crate::auth::middleware::{require_auth, require_admin};
+use crate::auth::middleware::{require_admin, require_auth};
 
 mod account;
-mod api;
 mod admin;
+mod api;
 mod cart;
 mod reviews;
 
@@ -14,9 +14,12 @@ pub fn router() -> Router {
             .route_layer(middleware::from_fn(require_auth)))
         .merge(reviews::routes()
             .route_layer(middleware::from_fn(require_auth)))
+        .merge(cart::routes())
         .merge(account::routes())
-        .nest("/admin", admin::router()
-            .route_layer(middleware::from_fn(require_admin)))
+        .nest(
+            "/admin",
+            admin::router().route_layer(middleware::from_fn(require_admin)),
+        )
         .fallback(api_404)
 }
 

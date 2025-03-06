@@ -1,12 +1,12 @@
 .homepage {
-  max-width: 1280px;
+
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
 }
 
 .logo {
-  height: 4.5em;
+  height: 10.5em;
   padding: 1.5em;
   will-change: filter;
   transition: filter 300ms;
@@ -52,19 +52,38 @@
   }
 }
 
+.footer {
+  max-width: fit-content;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
 .card {
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-  max-width: 300px;
-  margin: auto;
   text-align: center;
   font-family: arial;
-  display: flex;
+
+  
+  order: 4;
   justify-content: space-between;
+  row-gap: 2;
+
+  max-width: 300px;
+  margin: auto;
+}
+
+.card-container{
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+
 }
 
 .price {
   color: rgb(9, 240, 9);
   font-size: 22px;
+  text-align: center;
 }
 
 .card-button {
