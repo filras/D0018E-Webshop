@@ -6,6 +6,7 @@ mod account;
 mod admin;
 mod api;
 mod cart;
+mod order;
 
 pub fn router() -> Router {
     Router::new()
