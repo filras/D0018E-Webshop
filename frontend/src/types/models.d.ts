@@ -19,6 +19,17 @@ interface NewItem {
   discounted_price?: number;
 }
 
+interface CartItem {
+  item_id: number;
+  title: string;
+  description?: string;
+  price: number;
+  in_stock: number;
+  average_rating?: number;
+  discounted_price?: number;
+  amount: number;
+}
+
 interface UpdateItem {
   title?: string;
   description?: string;
