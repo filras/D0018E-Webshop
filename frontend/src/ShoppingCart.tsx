@@ -37,11 +37,6 @@ export default function ShoppingCart() {
   }
 
   async function increment(value: CartItem){
-     fetch(API_URL + "/cart", {
-      method: "GET", 
-      body: JSON.stringify(value),
-      headers: {"Content-Type": "application/json"}
-    });
     value.amount += 1;
     await fetch(API_URL + "/cart", {
       method: "PUT",
@@ -55,11 +50,6 @@ export default function ShoppingCart() {
 
 
   async function decrement(value: CartItem){        
-     fetch(API_URL + "/cart", {
-      method: "GET", 
-      body: JSON.stringify(value),
-      headers: {"Content-Type": "application/json"}
-    });
     value.amount -= 1;
     await fetch(API_URL + "/cart", {
       method: "PUT",
