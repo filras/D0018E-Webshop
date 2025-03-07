@@ -22,6 +22,7 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "tsync",
+ "walkdir",
 ]
 
 [[package]]
