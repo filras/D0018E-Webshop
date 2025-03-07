@@ -3,7 +3,7 @@ import './index.css'
 import Homepage from './App.tsx'
 
 // Products 
-
+import ProductPage from './product/Product.tsx';
 
 // Auth
 import Login from './auth/Login.tsx';
@@ -30,9 +30,8 @@ const  App = () => {
     if (userRequest.ok) {
       const user: User = await userRequest.json();
       setUser({
+        ...user,
         user_id: user.id,
-        username: user.username,
-        firstname: user.firstname,
         is_admin: user.role === "admin",
       });
     }
@@ -42,9 +41,8 @@ const  App = () => {
   // Set user from login/register
   const handleLogin = (user: User) => {
     setUser({
+      ...user,
       user_id: user.id,
-      username: user.username,
-      firstname: user.firstname,
       is_admin: user.role === "admin",
     });
   }
@@ -62,7 +60,8 @@ const  App = () => {
       <Navigation user={user} loadingUser={loading} performLogout={performLogout} />
       <div id="page-content">
         <Routes>
-          <Route path="/" element={<Homepage />} />
+          <Route index element={<Homepage />} />
+          <Route path="/item/:itemId" element={<ProductPage user={user} />} />
           <Route path="/login" element={
             <ProtectedRoute user={user} requireUnauthed>
               <Login user={user} setUser={handleLogin} />
