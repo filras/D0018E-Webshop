@@ -32,16 +32,12 @@ export default function ShoppingCart() {
 
   function totalPrice() {
     let total = 0;
-    products.forEach(product => total += product.discounted_price ? product.discounted_price * product.amount : product.price);
+    products.forEach(product => total += (product.discounted_price ? product.discounted_price  : product.price)* product.amount);
     return total;
   }
 
-  async function increment(value: CombinedCartItem){
-     fetch(API_URL + "/cart", {
-      method: "GET", 
-      body: JSON.stringify(value),
-      headers: {"Content-Type": "application/json"}
-    });
+
+  async function increment(value: CartItem){
     value.amount += 1;
     await fetch(API_URL + "/cart", {
       method: "PUT",
@@ -52,14 +48,8 @@ export default function ShoppingCart() {
   await loadProd();
   }
 
+  async function decrement(value: CartItem){        
 
-
-  async function decrement(value: CombinedCartItem){        
-     fetch(API_URL + "/cart", {
-      method: "GET", 
-      body: JSON.stringify(value),
-      headers: {"Content-Type": "application/json"}
-    });
     value.amount -= 1;
     await fetch(API_URL + "/cart", {
       method: "PUT",
