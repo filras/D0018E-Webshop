@@ -9,9 +9,10 @@ import Homepage from './App.tsx'
 import Login from './auth/Login.tsx';
 import Register from "./auth/Register.tsx"
 
-// Shoppingcart /checkout 
+// Shoppingcart /checkout /complete
 import ShoppingCart from "./ShoppingCart.tsx"
 import Checkout from './checkout.tsx';
+import Complete from "./complete.tsx";
 
 // Admin panel
 import AdminPanel from "./admin/Index.tsx";
@@ -77,6 +78,7 @@ const  App = () => {
           }/>
           <Route path="/shoppingcart" element={<ShoppingCart/>}/>
           <Route path='/checkout' element={<Checkout/>}></Route>
+          <Route path='/complete' element={<Complete/>}></Route>
           <Route path="/admin/*" element={
             <ProtectedRoute user={user} requireAdmin>
               <AdminPanel user_id={user?.user_id || 0 /* User will always exist inside ProtectedRoutes, so this is safe */} />

@@ -1,8 +1,5 @@
 import { useEffect, useState } from "react";
 import { API_URL } from "./etc/api_url";
-import { toast } from "react-toastify";
-
-
 
 
 
@@ -43,10 +40,9 @@ export default function checkout() {
 
     // Pass formdata as fetch body 
     const formJson = Object.fromEntries(formData.entries());
-    const result = await fetch(API_URL + "/account", { headers: { "Content-Type": "application/json" }, method: "put", body: JSON.stringify(formJson) });
-    console.log(result);
-
+    window.location.href = "/complete";
     await fetch(API_URL + "/order/create", { headers: { "Content-Type": "application/json" }, method: "post", body: JSON.stringify(formJson) });
+    
   }
 
 return(
@@ -58,7 +54,7 @@ return(
     </h2>
    <form method="post" onSubmit={handleSubmit} >
     <div>
-          <h1>Login</h1>
+          <h1>Enter Shipping information</h1>
           <input type="text" name="address" placeholder="Address" required/>
           <br />
           <input type="text" name="zipcode" placeholder="zipcode" required/>
@@ -66,9 +62,8 @@ return(
           <input type="text" name="co" placeholder="co" required/>
           <br />
           <input type="text" name="country" placeholder="country" required/>
-          <br />         
-          <button name="Submit" type="submit">Purchase        
-          </button>
+          <br />
+          <button name="Submit" type="submit">Purchase</button> 
           </div>
     </form>
     </div>
