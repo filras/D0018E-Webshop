@@ -27,8 +27,8 @@
 }
 
 .buynow-pic {
-  height: 4em;
-  width: 6em;
+  height: 80px;
+  width: 200px;
   justify-content: center;
   align-items: center;
   cursor: pointer;
@@ -131,4 +131,13 @@
 
 .hidden {
   display: none;
+}
+
+.title {
+  text-align: center;
+  font: caption;
+  font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+  color: rgb(240, 9, 178);
+  font-size: 35px;
+
 }

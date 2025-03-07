@@ -63,7 +63,7 @@ const  App = () => {
       <Navigation user={user} loadingUser={loading} performLogout={performLogout} />
       <div id="page-content">
         <Routes>
-          <Route index element={<Homepage />} />
+          <Route index element={<Homepage user={user} loadingUser={loading}  />} />
           <Route path="/item/:itemId" element={<ProductPage user={user} />} />
           <Route path="/login" element={
             <ProtectedRoute user={user} requireUnauthed>

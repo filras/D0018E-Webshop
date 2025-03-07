@@ -8,6 +8,7 @@ import { API_URL } from "../etc/api_url";
 import { CURRENCY } from "../etc/const";
 import { AuthUser } from "../auth/ProtectedRoute";
 import { toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 
 interface Props {
   user: AuthUser | null;
@@ -118,6 +119,25 @@ export default function ProductPage({ user }: Props) {
 
               notify(`Added ${product?.title} to cart`);
             }} />
+            <ToastContainer 
+                position="top-center"
+                autoClose={1000}
+                hideProgressBar={true}
+                newestOnTop={false}
+                closeOnClick={false}
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover={true}
+                theme="colored"
+                toastStyle={{
+                  borderRadius: "15px",
+                  fontSize: "14px",
+                  padding: "8px 12px",
+                  minWidth: "200px",
+                  color: "black",
+                }}
+                />
         </div>
         <div className="product-desc">
           <p className="product-price">{product?.price} {CURRENCY}</p>
@@ -158,3 +178,5 @@ export default function ProductPage({ user }: Props) {
       </div>
     </div>
 }
+// Docs for notifications
+// https://fkhadra.github.io/react-toastify/introduction/

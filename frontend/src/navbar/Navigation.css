@@ -52,3 +52,10 @@
 .navbar-logo {
   height: 4.5em;
 }
+
+.navbar-pics {
+  max-height: 65px;
+  max-width: 65px;
+  justify-items: center;
+  justify-content: center;
+}
