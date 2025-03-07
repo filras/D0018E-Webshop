@@ -1,6 +1,6 @@
 CREATE TABLE orders(
     id INTEGER AUTO_INCREMENT PRIMARY KEY,
-    user_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL REFERENCES users(id),
     address VARCHAR(255) NOT NULL,
     co VARCHAR(255),
     zipcode VARCHAR(255) NOT NULL,
