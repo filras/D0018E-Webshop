@@ -90,6 +90,7 @@ pub struct User {
 #[diesel(table_name = cart_items)]
 #[diesel(primary_key(user_id, item_id))]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
+#[tsync]
 pub struct CartItems {
     pub user_id: i32,
     pub item_id: i32,

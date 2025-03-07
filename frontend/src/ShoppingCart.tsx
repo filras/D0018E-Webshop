@@ -13,13 +13,13 @@ import { ToastContainer } from "react-toastify";
 
 export default function ShoppingCart() {
 
-  const [products, setProducts] = useState<Array<CartItem>>([]);
+  const [products, setProducts] = useState<Array<CombinedCartItem>>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   const loadProd = async () => {
     const itemRequest = await fetch(API_URL + "/cart", {method: "GET"});
     if (itemRequest.ok) {
-      const items: Array<CartItem> = await itemRequest.json();
+      const items: Array<CombinedCartItem> = await itemRequest.json();
       setProducts(items);
     }
     setLoading(false);
@@ -36,7 +36,7 @@ export default function ShoppingCart() {
     return total;
   }
 
-  async function increment(value: CartItem){
+  async function increment(value: CombinedCartItem){
      fetch(API_URL + "/cart", {
       method: "GET", 
       body: JSON.stringify(value),
@@ -54,7 +54,7 @@ export default function ShoppingCart() {
 
 
 
-  async function decrement(value: CartItem){        
+  async function decrement(value: CombinedCartItem){        
      fetch(API_URL + "/cart", {
       method: "GET", 
       body: JSON.stringify(value),
@@ -91,7 +91,7 @@ export default function ShoppingCart() {
     </h1>
     <br></br>    
     { 
-      !loading && products.map((value: CartItem) =>(  
+      !loading && products.map((value: CombinedCartItem) =>(  
         <div className='cart-product'>
               
               {<img src={bird1} className="cart-img" alt="bird-logo"/>

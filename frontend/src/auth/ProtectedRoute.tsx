@@ -5,6 +5,7 @@ export interface AuthUser {
   user_id: number;
   username: string;
   firstname: string;
+  surname: string;
   is_admin: boolean;
 }
 

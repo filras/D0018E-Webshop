@@ -19,17 +19,6 @@ interface NewItem {
   discounted_price?: number;
 }
 
-interface CartItem {
-  item_id: number;
-  title: string;
-  description?: string;
-  price: number;
-  in_stock: number;
-  average_rating?: number;
-  discounted_price?: number;
-  amount: number;
-}
-
 interface UpdateItem {
   title?: string;
   description?: string;
@@ -51,6 +40,12 @@ interface User {
   zipcode?: string;
   co?: string;
   country?: string;
+}
+
+interface CartItems {
+  user_id: number;
+  item_id: number;
+  amount: number;
 }
 
 interface NewUser {
@@ -80,8 +75,50 @@ interface UpdateUserAsAdmin {
   country?: string;
 }
 
+interface Review {
+  user_id: number;
+  item_id: number;
+  comment?: string;
+  rating: number;
+}
+
+interface NewReview {
+  comment?: string;
+  rating: number;
+}
+
 interface PaginatedSearchQuery {
   page: number;
   per_page: number;
   search?: string;
+}
+
+interface PaginatedIdQuery {
+  page: number;
+  per_page: number;
+  id: number;
+}
+
+interface ItemReview {
+  user_id: number;
+  firstname: string;
+  surname: string;
+  comment?: string;
+  rating: number;
+}
+
+interface CombinedCartItem {
+  item_id: number;
+  title: string;
+  description?: string;
+  price: number;
+  in_stock: number;
+  average_rating?: number;
+  discounted_price?: number;
+  amount: number;
+}
+
+interface UpdateCart {
+  item_id: number;
+  amount: number;
 }
