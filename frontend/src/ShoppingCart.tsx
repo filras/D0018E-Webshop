@@ -37,7 +37,7 @@ export default function ShoppingCart() {
   }
 
 
-  async function increment(value: CartItem){
+  async function increment(value: CombinedCartItem){
     value.amount += 1;
     await fetch(API_URL + "/cart", {
       method: "PUT",
@@ -48,7 +48,7 @@ export default function ShoppingCart() {
   await loadProd();
   }
 
-  async function decrement(value: CartItem){        
+  async function decrement(value: CombinedCartItem){        
 
     value.amount -= 1;
     await fetch(API_URL + "/cart", {

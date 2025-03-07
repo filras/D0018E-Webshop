@@ -6,13 +6,13 @@ import { API_URL } from "./etc/api_url";
 
 export default function checkout() {
 
-    const [products, setProducts] = useState<Array<CartItem>>([]);
+    const [products, setProducts] = useState<Array<CombinedCartItem>>([]);
     const [loading, setLoading] = useState<boolean>(true);
 
     const loadProd = async () => {
     const itemRequest = await fetch(API_URL + "/cart", {method: "GET"});
     if (itemRequest.ok) {
-      const items: Array<CartItem> = await itemRequest.json();
+      const items: Array<CombinedCartItem> = await itemRequest.json();
       setProducts(items);
     }
     setLoading(false);
@@ -40,9 +40,15 @@ export default function checkout() {
 
     // Pass formdata as fetch body 
     const formJson = Object.fromEntries(formData.entries());
-    window.location.href = "/complete";
-    await fetch(API_URL + "/order/create", { headers: { "Content-Type": "application/json" }, method: "post", body: JSON.stringify(formJson) });
-    
+    // Post data to /order/complete
+    console.log(formJson);    
+    const finalfetch = await fetch(API_URL + "/order/create", { headers: { "Content-Type": "application/json" }, method: "post", body: JSON.stringify(formJson) });
+    if(!finalfetch.ok){
+      console.log("Error fetching data");
+    }
+    else{
+      window.location.href = "/complete";
+    }
   }
 
 return(
@@ -57,9 +63,9 @@ return(
           <h1>Enter Shipping information</h1>
           <input type="text" name="address" placeholder="Address" required/>
           <br />
-          <input type="text" name="zipcode" placeholder="zipcode" required/>
+          <input type="text" name="co" placeholder="zipcode" required/>
           <br />
-          <input type="text" name="co" placeholder="co" required/>
+          <input type="text" name="zipcode" placeholder="co" required/>
           <br />
           <input type="text" name="country" placeholder="country" required/>
           <br />
