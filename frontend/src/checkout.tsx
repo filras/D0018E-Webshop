@@ -43,10 +43,14 @@ export default function checkout() {
     // Post data to /order/complete
     console.log(formJson);    
     const finalfetch = await fetch(API_URL + "/order/create", { headers: { "Content-Type": "application/json" }, method: "post", body: JSON.stringify(formJson) });
-    if(!finalfetch.ok){
+    if(finalfetch instanceof Error && finalfetch.message.includes("400")){
+      console.log("Ongoing order");
+      alert("Order ongoing!");
+    }
+    else if(!finalfetch.ok){
       console.log("Error fetching data");
     }
-    else{
+    else {
       window.location.href = "/complete";
     }
   }
