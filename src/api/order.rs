@@ -200,7 +200,7 @@ async fn create_order(
     }
 
     //TODO add timer and start it
-    return (StatusCode::OK, "Order started").into_response();
+    return (StatusCode::OK, Json(oid)).into_response();
 }
 
 async fn release_items(oid: i32) {
