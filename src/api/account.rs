@@ -39,7 +39,7 @@ async fn handle_post(ctx: Result<Ctx, String>, cookies: Cookies, data: Json<NewU
     
     // Validate input
     // Test email (regexp from https://regex101.com/r/lHs2R3/1) (except the special case of =admin)
-    if new_user.email == "admin" ||
+    if new_user.email != "admin" &&
         Regex::new(r"^[\w\-\.]+@([\w-]+\.)+[\w-]{2,}$").unwrap().is_match(new_user.email.as_str()) == false {
         return (StatusCode::BAD_REQUEST, "Invalid email").into_response()
     }
