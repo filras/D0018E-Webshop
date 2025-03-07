@@ -41,7 +41,7 @@ struct ShippingInformation {
     comment: Option<String>,
 }
 
-async fn reserve_items(oid: i32) {
+async fn reserve_items(oid: i32) -> std::result::Result<(), ()> {
     let conn = &mut connect_to_db();
     let reserve_items = order_items::table
         .filter(order_id.eq(oid))
@@ -50,15 +50,26 @@ async fn reserve_items(oid: i32) {
         .unwrap();
 
     for o in reserve_items {
+        let cmp_item = items::table
+            .find(o.item_id)
+            .select(Item::as_select())
+            .first::<Item>(conn)
+            .unwrap();
+
+        if cmp_item.in_stock < o.amount {
+            return Err(());
+        }
+
         let item = diesel::update(items::table)
             .filter(items::id.eq(o.item_id))
             .set(items::in_stock.eq(in_stock - o.amount))
             .execute(conn);
 
         if item.is_err() {
-            return;
+            return Err(());
         }
     }
+    return Ok(());
 }
 
 async fn create_order(
@@ -183,7 +194,10 @@ async fn create_order(
         }
     }
 
-    reserve_items(oid).await;
+    let reserve_res = reserve_items(oid).await;
+    if reserve_res.is_err() {
+        return (StatusCode::BAD_REQUEST, "Error while reserving order items").into_response();
+    }
 
     //TODO add timer and start it
     return (StatusCode::OK, "Order started").into_response();
