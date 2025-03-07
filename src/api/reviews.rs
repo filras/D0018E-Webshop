@@ -1,37 +1,35 @@
 use axum::{
-    extract::{Json, Query},
-    http::StatusCode,
-    response::IntoResponse,
-    routing::get,
-    Router,
+    extract::{Json, Query}, http::StatusCode, middleware, response::IntoResponse, routing::{delete, get}, Router
 };
 use diesel::{
-    dsl::{delete, insert_into, update}, prelude::*, result::Error
+    dsl::{self, insert_into, update}, prelude::*, result::Error
 };
 use serde::Serialize;
 use tsync::tsync;
 
 use crate::{
-    auth::ctx::Ctx,
+    auth::{ctx::Ctx, middleware::require_auth},
     db::{
         connect_to_db,
         models::{IdQuery, NewReview, PaginatedIdQuery, Review},
     },
-    schema::{reviews, users, items},
+    schema::{items, reviews, users},
 };
 
 pub fn routes() -> Router {
     Router::new()
         .route("/reviews", 
-            get(get_reviews)
-            .delete(delete_review)
-            .post(create_review))
+            get(get_reviews))
+        .route("/reviews",
+            delete(delete_review).post(create_review)
+            .route_layer(middleware::from_fn(require_auth)))
 }
 
 
 #[derive(Serialize, Queryable)]
 #[tsync]
 struct ItemReview {
+    pub user_id: i32,
     pub firstname: String,
     pub surname: String,
     pub comment: Option<String>,
@@ -52,6 +50,7 @@ async fn get_reviews(query: Query<PaginatedIdQuery>) -> impl IntoResponse {
         .limit(query.per_page as i64)
         .inner_join(users::table)
         .select((
+            users::id,
             users::firstname,
             users::surname,
             reviews::comment,
@@ -73,7 +72,7 @@ async fn delete_review(ctx: Result<Ctx, String>, query: Query<IdQuery>) -> impl 
     let conn = &mut connect_to_db();
 
     // Try to delete the review
-    let result = delete(reviews::table
+    let result = dsl::delete(reviews::table
         .filter(reviews::user_id.eq(user.user_id()))
         .filter(reviews::item_id.eq(query.id))
     ).execute(conn);

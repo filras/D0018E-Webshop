@@ -20,6 +20,7 @@ use axum::{
 };
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
+use tsync::tsync;
 
 pub fn routes() -> Router {
     Router::new()
@@ -29,6 +30,7 @@ pub fn routes() -> Router {
 
 // Struct used to return cart and item join as one object
 #[derive(Serialize, Queryable)]
+#[tsync]
 struct CombinedCartItem {
     item_id: i32,
     title: String,
@@ -66,6 +68,7 @@ async fn get_cart(ctx: Result<Ctx, String>) -> impl IntoResponse {
 
 #[derive(Deserialize, AsChangeset)]
 #[diesel(table_name = cart_items)]
+#[tsync]
 struct UpdateCart {
     item_id: i32,
     amount: i32,

@@ -106,3 +106,19 @@ interface ItemReview {
   comment?: string;
   rating: number;
 }
+
+interface CombinedCartItem {
+  item_id: number;
+  title: string;
+  description?: string;
+  price: number;
+  in_stock: number;
+  average_rating?: number;
+  discounted_price?: number;
+  amount: number;
+}
+
+interface UpdateCart {
+  item_id: number;
+  amount: number;
+}
