@@ -6,6 +6,7 @@ mod account;
 mod admin;
 mod api;
 mod cart;
+mod order;
 mod reviews;
 
 pub fn router() -> Router {
@@ -13,6 +14,7 @@ pub fn router() -> Router {
         .merge(api::routes())
         .merge(reviews::routes())
         .merge(cart::routes())
+        .merge(order::routes())
         .merge(account::routes())
         .nest(
             "/admin",

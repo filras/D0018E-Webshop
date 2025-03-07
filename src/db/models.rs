@@ -1,7 +1,7 @@
 use crate::schema::*;
 use diesel::prelude::*;
 use diesel::Queryable;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 // Tsync syncs types from Rust to the frontend in TS
 // To perform a sync, add #[tsync] to the struct and sync with `cargo run --bin tsync`
@@ -84,7 +84,7 @@ pub struct User {
     pub country: Option<String>,
 }
 
-#[derive(Identifiable, Selectable, Queryable, Associations, Debug, PartialEq, Eq)]
+#[derive(Identifiable, Selectable, Queryable, Associations, Debug, PartialEq, Eq, Serialize)]
 #[diesel(belongs_to(User))]
 #[diesel(belongs_to(Item))]
 #[diesel(table_name = cart_items)]
@@ -157,6 +157,54 @@ pub struct Review {
     pub rating: i32,
 }
 
+#[derive(
+    Queryable,
+    Insertable,
+    Identifiable,
+    Selectable,
+    serde::Serialize,
+    serde::Deserialize,
+    Debug,
+    PartialEq,
+)]
+#[diesel(table_name = order_items)]
+#[diesel(belongs_to(Order))]
+#[diesel(belongs_to(Item))]
+#[diesel(primary_key(order_id, item_id))]
+#[diesel(check_for_backend(diesel::mysql::Mysql))]
+#[tsync]
+pub struct OrderItems {
+    pub order_id: i32,
+    pub item_id: i32,
+    pub amount: i32,
+    pub total: i32,
+}
+
+#[derive(
+    Queryable,
+    Insertable,
+    Identifiable,
+    Selectable,
+    serde::Serialize,
+    serde::Deserialize,
+    Debug,
+    PartialEq,
+)]
+#[diesel(table_name = orders)]
+#[diesel(check_for_backend(diesel::mysql::Mysql))]
+#[tsync]
+pub struct Orders {
+    pub id: i32,
+    pub user_id: i32,
+    pub address: String,
+    pub co: Option<String>,
+    pub zipcode: String,
+    pub country: String,
+    pub total: i32,
+    pub comment: Option<String>,
+    pub payment_completed: bool,
+}
+
 // Used for POST /reviews
 #[derive(Deserialize)]
 #[tsync]
@@ -164,7 +212,6 @@ pub struct NewReview {
     pub comment: Option<String>,
     pub rating: i32,
 }
-
 
 // Generic query by ID
 #[derive(Deserialize)]
