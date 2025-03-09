@@ -30,6 +30,7 @@ pub fn routes() -> Router {
         .layer(middleware::from_fn(auth::middleware::require_auth))
         .route("/order/cancel", delete(cancel_order))
         .layer(middleware::from_fn(auth::middleware::require_auth))
+        .route("/order/complete", post(complete_order))
 }
 
 #[derive(Deserialize)]
@@ -250,4 +251,21 @@ pub async fn cancel_order(oid: Query<IdQuery>) -> impl IntoResponse {
     )
         .into_response();
     //return (StatusCode::INTERNAL_SERVER_ERROR, "Order deletetion failed").into_response();
+}
+
+pub async fn complete_order(oid: Query<IdQuery>) -> impl IntoResponse {
+    let query = oid.0;
+    let conn = &mut connect_to_db();
+    let result = diesel::update(orders::table)
+        .filter(orders::id.eq(query.id))
+        .set(orders::payment_completed.eq(true))
+        .execute(conn);
+    if result.is_err() {
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Error while completing order",
+        );
+    }
+
+    return (StatusCode::OK, "Order completed");
 }
