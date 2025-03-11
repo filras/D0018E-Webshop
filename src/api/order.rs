@@ -2,7 +2,7 @@ use crate::{
     auth::{self, ctx::Ctx},
     db::{
         connect_to_db,
-        models::{CartItems, IdQuery, Item, OrderItems, Orders},
+        models::{CartItems, IdQuery, Item, OrderItems, Order},
     },
     schema::{
         cart_items::{self, user_id},
@@ -116,8 +116,8 @@ async fn create_order(
     // Check if user has a current ongoing order
     let ongoing_order = orders::table
         .filter(orders::user_id.eq(user.user_id()))
-        .select(Orders::as_select())
-        .first::<Orders>(conn);
+        .select(Order::as_select())
+        .first::<Order>(conn);
     if ongoing_order.is_ok() {
         return (
             StatusCode::BAD_REQUEST,
@@ -140,8 +140,8 @@ async fn create_order(
 
     let oid_order = orders::table
         .filter(orders::user_id.eq(user.user_id()))
-        .select(Orders::as_select())
-        .first::<Orders>(conn)
+        .select(Order::as_select())
+        .first::<Order>(conn)
         .unwrap();
 
     let oid = oid_order.id;
