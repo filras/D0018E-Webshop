@@ -76,15 +76,38 @@ interface UpdateUserAsAdmin {
 }
 
 interface Review {
+  id: number;
   user_id: number;
   item_id: number;
   comment?: string;
   rating: number;
 }
 
-interface NewReview {
+interface Comment {
+  id: number;
+  user_id: number;
+  review_id: number;
+  comment_id?: number;
+  comment: string;
+}
+
+interface OrderItems {
+  order_id: number;
+  item_id: number;
+  amount: number;
+  total: number;
+}
+
+interface Order {
+  id: number;
+  user_id: number;
+  address: string;
+  co?: string;
+  zipcode: string;
+  country: string;
+  total: number;
   comment?: string;
-  rating: number;
+  payment_completed: boolean;
 }
 
 interface PaginatedSearchQuery {
@@ -97,14 +120,6 @@ interface PaginatedIdQuery {
   page: number;
   per_page: number;
   id: number;
-}
-
-interface ItemReview {
-  user_id: number;
-  firstname: string;
-  surname: string;
-  comment?: string;
-  rating: number;
 }
 
 interface CombinedCartItem {
@@ -121,4 +136,34 @@ interface CombinedCartItem {
 interface UpdateCart {
   item_id: number;
   amount: number;
+}
+
+interface ItemReviewWithComments {
+  user_id: number;
+  review_id: number;
+  firstname: string;
+  surname: string;
+  comment?: string;
+  rating: number;
+  comments: Array<ReviewComment>;
+}
+
+interface ReviewComment {
+  id: number;
+  user_id: number;
+  review_id: number;
+  firstname: string;
+  surname: string;
+  comment: string;
+  comment_id?: number;
+}
+
+interface NewReview {
+  comment?: string;
+  rating: number;
+}
+
+interface NewComment {
+  comment: string;
+  parent_id?: number;
 }

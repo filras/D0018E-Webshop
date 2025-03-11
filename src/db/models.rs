@@ -139,6 +139,7 @@ pub struct UpdateUserAsAdmin {
     Insertable,
     Identifiable,
     Selectable,
+    Associations,
     serde::Serialize,
     serde::Deserialize,
     Debug,
@@ -147,10 +148,11 @@ pub struct UpdateUserAsAdmin {
 #[diesel(table_name = reviews)]
 #[diesel(belongs_to(User))]
 #[diesel(belongs_to(Item))]
-#[diesel(primary_key(user_id, item_id))]
+#[diesel(primary_key(id))]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
 #[tsync]
 pub struct Review {
+    pub id: i32,
     pub user_id: i32,
     pub item_id: i32,
     pub comment: Option<String>,
@@ -162,6 +164,32 @@ pub struct Review {
     Insertable,
     Identifiable,
     Selectable,
+    Associations,
+    serde::Serialize,
+    serde::Deserialize,
+    Debug,
+    PartialEq,
+)]
+#[diesel(table_name = comments)]
+#[diesel(belongs_to(User))]
+#[diesel(belongs_to(Review))]
+#[diesel(belongs_to(Comment))]
+#[diesel(check_for_backend(diesel::mysql::Mysql))]
+#[tsync]
+pub struct Comment {
+    pub id: i32,
+    pub user_id: i32,
+    pub review_id: i32,
+    pub comment_id: Option<i32>,
+    pub comment: String,
+}
+
+#[derive(
+    Queryable,
+    Insertable,
+    Identifiable,
+    Selectable,
+    Associations,
     serde::Serialize,
     serde::Deserialize,
     Debug,
@@ -193,7 +221,7 @@ pub struct OrderItems {
 #[diesel(table_name = orders)]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
 #[tsync]
-pub struct Orders {
+pub struct Order {
     pub id: i32,
     pub user_id: i32,
     pub address: String,
@@ -203,14 +231,6 @@ pub struct Orders {
     pub total: i32,
     pub comment: Option<String>,
     pub payment_completed: bool,
-}
-
-// Used for POST /reviews
-#[derive(Deserialize)]
-#[tsync]
-pub struct NewReview {
-    pub comment: Option<String>,
-    pub rating: i32,
 }
 
 // Generic query by ID

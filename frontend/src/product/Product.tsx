@@ -9,6 +9,7 @@ import { CURRENCY } from "../etc/const";
 import { AuthUser } from "../auth/ProtectedRoute";
 import { toast } from "react-toastify";
 import { ToastContainer } from "react-toastify";
+import Review from "./Review";
 
 interface Props {
   user: AuthUser | null;
@@ -20,7 +21,7 @@ export default function ProductPage({ user }: Props) {
 
   const [product, setProduct] = useState<Item | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [reviews, setReviews] = useState<Array<ItemReview>>([]);
+  const [reviews, setReviews] = useState<Array<ItemReviewWithComments>>([]);
   const [loadingReviews, setLoadingReviews] = useState<boolean>(true);
 
   // Ignore invalid itemId by going to homepage
@@ -76,29 +77,11 @@ export default function ProductPage({ user }: Props) {
     } else {
       setError("");
       // This will only be run authed
-      setReviews([...reviews, {
-        ...newReview,
-        firstname: user?.firstname || "",
-        surname: user?.surname || "",
-        user_id: user?.user_id || 0,
-      }]);
+      fetchReviews(itemId);
     }
   }
 
   useEffect(() => {fetchProduct(itemId); fetchReviews(itemId)}, []);
-
-  async function deleteComment() {
-    // Create a post request to API to create an account
-    const createResult = await fetch(API_URL + "/reviews?id=" + itemId, {
-      method: "DELETE",
-    })
-
-    // If post succeeded, remove review from array
-    if (createResult.ok) {
-      // This will only be run authed
-      setReviews(reviews.filter(review => review.user_id !== user?.user_id));
-    }
-  }
 
   return loading ? <div></div> : 
     <div className="product-container">
@@ -149,15 +132,13 @@ export default function ProductPage({ user }: Props) {
         <h1>Reviews</h1>
         { loadingReviews ? <div></div> :
           reviews.map(review => (
-            <div className="review">
-              <h3 className="review-user">{review.firstname} {review.surname}:</h3>
-              {[...Array(review.rating)].map(() => (<span className="review-text">*</span>))}
-              {review.comment && <p className="review-text">{review.comment}</p>}
-
-              {review.user_id === user?.user_id && (
-                <button className="review-delete" onClick={() => deleteComment()}>Delete review</button>
-              )}
-            </div>
+            <Review
+              key = {review.review_id}
+              review = {review}
+              user = {user}
+              item_id = {itemId}
+              causeReviewsReload = {() => fetchReviews(itemId)}
+            />
           ))
         }
 
