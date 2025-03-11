@@ -57,14 +57,21 @@
   margin: 40px auto;
 }
 
+.review-container {
+  margin: 30px 0;
+}
+
 .review {
   border: 1px solid rgb(131, 131, 131);
   border-radius: 8px;
-  margin: 30px 0;
   padding: 30px;
 }
 
 .review-user {
+  margin: 0 0 5px;
+}
+
+.review-title {
   margin: 0 0 5px;
 }
 
@@ -74,4 +81,19 @@
 
 .review-delete {
   display: block;
+}
+
+.review-comments {
+  margin-left: 30px;
+}
+
+.review-comment {
+  border: 1px solid rgb(131, 131, 131);
+  border-radius: 8px;
+  margin: 10px 0;
+  padding: 16px 20px;
+}
+
+.review-respond-button {
+  float: left;
 }
