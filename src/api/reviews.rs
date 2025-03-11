@@ -94,6 +94,9 @@ async fn get_reviews(query: Query<PaginatedIdQuery>) -> impl IntoResponse {
     let mut reviews_with_comments: Vec<ItemReviewWithComments> = vec![];
     for review in reviews {
         let query_results = comments::table
+            .filter(
+                comments::review_id.eq(review.review_id)
+            )
             .inner_join(reviews::table)
             .inner_join(users::table)
             .select((
@@ -272,7 +275,6 @@ async fn create_comment(ctx: Result<Ctx, String>, query: Query<IdQuery>, data: J
         Some(parent_id) => {
             match comments::table
                 .select(Comment::as_select())
-                .filter(comments::user_id.eq(user.user_id()))
                 .filter(comments::review_id.eq(query.id))
                 .filter(comments::id.eq(parent_id))
                 .first::<Comment>(conn) {
@@ -283,7 +285,7 @@ async fn create_comment(ctx: Result<Ctx, String>, query: Query<IdQuery>, data: J
         None => Ok(None),
     };
     if parent_id_parsed.is_err() {
-        return (StatusCode::BAD_REQUEST, "Invalid review id")
+        return (StatusCode::BAD_REQUEST, "Invalid parent id")
     }
     let parent_id = parent_id_parsed.unwrap();
 
