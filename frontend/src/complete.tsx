@@ -10,7 +10,7 @@ export default function complete() {
     const [loading, setLoading] = useState<boolean>(true);
   
     const loadProd = async () => {
-      const itemRequest = await fetch(API_URL + "/cart", {method: "GET"}); // Not implemented in backend yet
+      const itemRequest = await fetch(API_URL + "/order", {method: "GET"});
       if (itemRequest.ok) {
         const items: Array<OrderItems> = await itemRequest.json();
         setProducts(items);
@@ -22,67 +22,51 @@ export default function complete() {
     // Load products once at start of session
     useEffect(() => {loadProd();}, [])
     
-    /*
-    async function cancel(value:OrderItems) {
-        await fetch(API_URL + "/order/cancel",{
-            method: "POST",
-            body: JSON.stringify(value),
-            headers: {"Content-Type": "application/json"}
-        })
-    }
-
-    async function pay(value: OrderItems){
-        await fetch(API_URL + "/order/complete",{
-            method: "POST",
-            body: JSON.stringify(value),
-            headers: {"Content-Type": "application/json"}
-        })
-    }
-    */
     
     return(
    
         <div className="comp">
-            
+          
+        
             <h1 className="comp-title">
                 Your order:
             </h1>
-                  
-           <img src={payImg} className="comp-pics"
-                    onClick={async () => {
-                        let response = await fetch(API_URL + "/order/complete",{
-                            method: "POST",
-                            body: JSON.stringify(value),
-                            headers: {"Content-Type": "application/json"}
-                        })
-                        if(response instanceof Error){
-                            console.log("Something went wrong when buying order");
-                        }
-                        else if(response.ok){
-                            console.log("Order bought with GREAT success!");
-                            window.location.href = "/";
-                        }   
-                        //pay(value);
-                    }}/>
-
-                    
-            <img src={cancelImg} className="comp-pics"
+            <br></br>
+            {
+        !loading && products.map((value: OrderItems) =>(
+               
+           <><img src={payImg} className="comp-pics"
                 onClick={async () => {
-                    let response = await fetch(API_URL + "/order/cancel",{
+                    let response = await fetch(API_URL + "/order/complete", {
                         method: "POST",
                         body: JSON.stringify(value),
-                        headers: {"Content-Type": "application/json"}
-                    })
-                    if(response instanceof Error){
-                        console.log("Something went wrong when removing order");
+                        headers: { "Content-Type": "application/json" }
+                    });
+                    if (response instanceof Error) {
+                        console.log("Something went wrong when buying order");
                     }
-                    else if(response.ok){
-                        console.log("Order removed with success");
+                    else if (response.ok) {
+                        console.log("Order bought with GREAT success!");
                         window.location.href = "/";
                     }
-                    //cancel(value)
-                }}  
-            />
+                    
+                } } /><img src={cancelImg} className="comp-pics"
+                    onClick={async () => {
+                        let response = await fetch(API_URL + "/order/cancel", {
+                            method: "POST",
+                            body: JSON.stringify(value),
+                            headers: { "Content-Type": "application/json" }
+                        });
+                        if (response instanceof Error) {
+                            console.log("Something went wrong when removing order");
+                        }
+                        else if (response.ok) {
+                            console.log("Order removed with success");
+                            window.location.href = "/";
+                        }
+                        
+                    } } /></>
+        ))}  
         </div>
     )
 }
