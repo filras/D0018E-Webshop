@@ -201,7 +201,7 @@ pub struct Comment {
 #[diesel(primary_key(order_id, item_id))]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
 #[tsync]
-pub struct OrderItems {
+pub struct OrderItem {
     pub order_id: i32,
     pub item_id: i32,
     pub amount: i32,

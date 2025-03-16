@@ -2,7 +2,7 @@ use crate::{
     auth::{self, ctx::Ctx},
     db::{
         connect_to_db,
-        models::{CartItems, IdQuery, Item, OrderItems, Order},
+        models::{CartItems, IdQuery, Item, OrderItem, Order},
     },
     schema::{
         cart_items::{self, user_id},
@@ -27,7 +27,6 @@ use serde::Deserialize;
 pub fn routes() -> Router {
     Router::new()
         .route("/order/create", post(create_order))
-        .layer(middleware::from_fn(auth::middleware::require_auth))
         .route("/order/cancel", delete(cancel_order))
         .layer(middleware::from_fn(auth::middleware::require_auth))
 }
@@ -45,8 +44,8 @@ async fn reserve_items(oid: i32) -> std::result::Result<(), ()> {
     let conn = &mut connect_to_db();
     let reserve_items = order_items::table
         .filter(order_id.eq(oid))
-        .select(OrderItems::as_select())
-        .load::<OrderItems>(conn)
+        .select(OrderItem::as_select())
+        .load::<OrderItem>(conn)
         .unwrap();
 
     for o in reserve_items {
@@ -203,12 +202,12 @@ async fn create_order(
     return (StatusCode::OK, Json(oid)).into_response();
 }
 
-async fn release_items(oid: i32) {
+pub async fn release_items(oid: i32) {
     let conn = &mut connect_to_db();
     let o_items = order_items::table
         .filter(order_id.eq(oid))
-        .select(OrderItems::as_select())
-        .load::<OrderItems>(conn)
+        .select(OrderItem::as_select())
+        .load::<OrderItem>(conn)
         .unwrap();
 
     for o in o_items {
@@ -222,7 +221,7 @@ async fn release_items(oid: i32) {
     }
 }
 
-pub async fn cancel_order(oid: Query<IdQuery>) -> impl IntoResponse {
+async fn cancel_order(oid: Query<IdQuery>) -> impl IntoResponse {
     //TODO remove timer
     let conn = &mut connect_to_db();
     let ord_id: IdQuery = oid.0;

@@ -1,22 +1,19 @@
-pub use self::error::{Error, Result};
-
 use auth::KEY;
 use axum::{
     http::HeaderValue, middleware, response::{Html, IntoResponse}, Router
 };
-use std::{fs, net::SocketAddr, path::PathBuf};
+use std::{fs, net::SocketAddr, path::PathBuf, result::Result};
 use tower_cookies::{Key, CookieManagerLayer};
 use tower_http::{cors::{Any, CorsLayer}, services::ServeDir, trace::{self, TraceLayer}};
 use tracing::Level;
 
 mod api;
 mod auth;
-mod error;
 mod db;
 pub mod schema;
 
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() -> Result<(), ()> {
     tracing_subscriber::fmt()
         .with_target(false)
         .compact()

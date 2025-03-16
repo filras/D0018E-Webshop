@@ -4,6 +4,7 @@ import "./Admin.css"
 
 import Users from "./Users";
 import Items from "./Items";
+import { Orders, ManageOrder } from "./Orders";
 
 type Props = {
   user_id: number
@@ -24,7 +25,10 @@ export default function AdminPanel({ user_id }: Props) {
           <Route index element={<h3>Select a function on the panel to the left to manage the shop</h3>} />
           <Route path="users" element={<Users user_id={user_id} />} />
           <Route path="items" element={<Items />} />
-          <Route path="orders" element={<p>Orders</p>} />
+          <Route path="orders">
+            <Route index element={<Orders />} />
+            <Route path=":orderId" element={<ManageOrder />} />
+          </Route>
         </Routes>
       </div>
     </div>
