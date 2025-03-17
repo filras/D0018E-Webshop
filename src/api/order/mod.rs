@@ -52,9 +52,9 @@ async fn handle_get_pending(ctx: Result<Ctx, String>) -> impl IntoResponse {
         let error = ongoing_order_query.unwrap_err();
         
         if error == Error::NotFound {
-            return (StatusCode::BAD_REQUEST, format!("User {} has no pending order", user.user_id())).into_response();
+            return (StatusCode::BAD_REQUEST, format!("User {} has no pending order", user.username())).into_response();
         } else {
-            return (StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to read order for user {}: {}", user.user_id(), error)).into_response();
+            return (StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to read order for user {}: {}", user.username(), error)).into_response();
         }
     }
 
@@ -94,9 +94,9 @@ async fn handle_complete_order(ctx: Result<Ctx, String>) -> impl IntoResponse {
         let error = orderid_result.unwrap_err();
         
         if error == Error::NotFound {
-            return (StatusCode::BAD_REQUEST, format!("User {} has no pending order", user.user_id())).into_response();
+            return (StatusCode::BAD_REQUEST, format!("User {} has no pending order", user.username())).into_response();
         } else {
-            return (StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to read order for user {}: {}", user.user_id(), error)).into_response();
+            return (StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to read order for user {}: {}", user.username(), error)).into_response();
         }
     }
     let order_id = orderid_result.unwrap();
@@ -127,9 +127,9 @@ async fn handle_cancel_order(ctx: Result<Ctx, String>) -> impl IntoResponse {
         let error = ongoing_order_query.unwrap_err();
         
         if error == Error::NotFound {
-            return (StatusCode::BAD_REQUEST, format!("User {} has no pending order", user.user_id())).into_response();
+            return (StatusCode::BAD_REQUEST, format!("User {} has no pending order", user.username())).into_response();
         } else {
-            return (StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to read order for user {}: {}", user.user_id(), error)).into_response();
+            return (StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to read order for user {}: {}", user.username(), error)).into_response();
         }
     }
     let order_id = ongoing_order_query.unwrap();

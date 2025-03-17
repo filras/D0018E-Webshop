@@ -2,27 +2,29 @@ use axum::{
     extract::{Json, Query},
     http::StatusCode,
     response::IntoResponse,
-    routing::get,
+    routing::{get, delete},
     Router,
 };
 
-use diesel::{self, prelude::*};
+use diesel::{self, prelude::*, result::Error};
 use serde::Serialize;
 use tsync::tsync;
 
 use crate::{
-    api::order::release_items,
+    api::order::management::{cancel_order, remove_order},
     db::{
         connect_to_db,
-        models::{IdQuery, PaginatedSearchQuery},
+        models::{IdQuery, Order, PaginatedSearchQuery},
     },
-    schema::{self, items, order_items, orders, users},
+    schema::{self, items, order_items, orders, users}
 };
 
 pub fn routes() -> Router {
     Router::new()
-        .route("/orders", get(handle_get))
-        .route("/order_data", get(get_order_data))
+        .route("/orders", get(handle_get_orders))
+        .route("/order", get(handle_get_order_data))
+        .route("/order/cancel", delete(handle_cancel_order))
+        .route("/order/remove", delete(handle_remove_order))
 }
 
 #[derive(Serialize, Queryable, Debug)]
@@ -75,7 +77,7 @@ const COLUMNS_FOR_ORDER_WITH_USERDATA: (
 
 
 // Query for orders, uses search (for username) if present, otherwise all. Paginated
-async fn handle_get(query: Query<PaginatedSearchQuery>) -> impl IntoResponse {
+async fn handle_get_orders(query: Query<PaginatedSearchQuery>) -> impl IntoResponse {
     let query: PaginatedSearchQuery = query.0;
     let conn = &mut connect_to_db();
 
@@ -104,36 +106,6 @@ async fn handle_get(query: Query<PaginatedSearchQuery>) -> impl IntoResponse {
         Ok(results) => (StatusCode::OK, Json(results)).into_response(),
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
     }
-}
-
-async fn cancel_order(query: Query<IdQuery>) -> impl IntoResponse {
-    //TODO remove timer
-    let conn = &mut connect_to_db();
-    let order_query: IdQuery = query.0;
-    let res = diesel::delete(order_items::table)
-        .filter(order_items::order_id.eq(order_query.id))
-        .execute(conn);
-    if res.is_err() {
-        return (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            "order_item deletion failed",
-        )
-            .into_response();
-    }
-
-    let result = diesel::delete(orders::table.find(order_query.id)).execute(conn);
-
-    if result.is_ok() {
-        release_items(order_query.id).await;
-        return (StatusCode::OK, "Order deleted").into_response();
-    }
-
-    return (
-        StatusCode::INTERNAL_SERVER_ERROR,
-        result.unwrap_err().to_string(),
-    )
-        .into_response();
-    //return (StatusCode::INTERNAL_SERVER_ERROR, "Order deletetion failed").into_response();
 }
 
 #[derive(Serialize, Queryable, Debug)]
@@ -166,7 +138,8 @@ struct OrderItemWithData {
     pub total: i32,
 }
 
-async fn get_order_data(query: Query<IdQuery>) -> impl IntoResponse {
+// Get compounded JSON about a single order and its order items
+async fn handle_get_order_data(query: Query<IdQuery>) -> impl IntoResponse {
     let conn = &mut connect_to_db();
     let order_query: IdQuery = query.0;
 
@@ -215,4 +188,73 @@ async fn get_order_data(query: Query<IdQuery>) -> impl IntoResponse {
 
         items: order_items_res.unwrap(),
     }).into_response()
+}
+
+// Cancel any order by order ID (this works only for pending orders)
+async fn handle_cancel_order(query: Query<IdQuery>) -> impl IntoResponse {
+    let conn = &mut connect_to_db();
+    let order_id = query.0.id;
+
+    // Check if order exists and is pending
+    let ongoing_order_query = orders::table
+        .find(order_id)
+        .select(Order::as_select())
+        .first::<Order>(conn);
+    if ongoing_order_query.is_err() {
+        let error = ongoing_order_query.unwrap_err();
+        
+        if error == Error::NotFound {
+            return (StatusCode::BAD_REQUEST, format!("Order #{} doesn't exist", order_id)).into_response();
+        } else {
+            return (StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to read order #{}: {}", order_id, error)).into_response();
+        }
+    }
+    
+    // Check so order is actually pending (not yet completed)
+    let order = ongoing_order_query.unwrap();
+    if order.payment_completed == true {
+        return (StatusCode::BAD_REQUEST, format!("Order #{} is already completed", order_id)).into_response();
+    }
+
+
+    let cancel_order_result = cancel_order(conn, order_id);
+    if cancel_order_result.is_err() {
+        return (StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to cancel order #{}: {}", order_id, cancel_order_result.unwrap_err())).into_response();
+    }
+
+    format!("Order #{} cancelled", order_id).into_response()
+}
+
+// Remove any order by order ID (this works only for completed orders)
+async fn handle_remove_order(query: Query<IdQuery>) -> impl IntoResponse {
+    let conn = &mut connect_to_db();
+    let order_id = query.0.id;
+
+    // Check if order exists and isn't pending
+    let order_query = orders::table
+        .find(order_id)
+        .select(Order::as_select())
+        .first::<Order>(conn);
+    if order_query.is_err() {
+        let error = order_query.unwrap_err();
+        
+        if error == Error::NotFound {
+            return (StatusCode::BAD_REQUEST, format!("Order #{} doesn't exist", order_id)).into_response();
+        } else {
+            return (StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to read order #{}: {}", order_id, error)).into_response();
+        }
+    }
+    
+    // Check so order is not pending (payment completed)
+    let order = order_query.unwrap();
+    if order.payment_completed == false {
+        return (StatusCode::BAD_REQUEST, format!("Order #{} is still pending, use /cancel to remove it", order_id)).into_response();
+    }
+
+    let cancel_order_result = remove_order(conn, order_id);
+    if cancel_order_result.is_err() {
+        return (StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to remove order #{}: {}", order_id, cancel_order_result.unwrap_err())).into_response();
+    }
+
+    format!("Order #{} removed", order_id).into_response()
 }

@@ -28,6 +28,8 @@ export function Orders({ }: Props) {
         <button onClick={() => setPage(Math.max(page - 1, 1))}>Previous page</button>
         <p>Current page: {page}</p>
         <button onClick={() => setPage(page + 1)}>Next page</button>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <button onClick={() => fetchOrders()}>Refresh</button>
       </div>
 
       <table className="admin-table">
@@ -38,6 +40,7 @@ export function Orders({ }: Props) {
           <th>Username</th>
           <th>Email</th>
           <th>Total</th>
+          <th>Completed</th>
           <th className="admin-table-manage">
             Actions
           </th>
@@ -50,6 +53,7 @@ export function Orders({ }: Props) {
             <td>{order.username}</td>
             <td>{order.email}</td>
             <td>{order.total} {CURRENCY}</td>
+            <td>{order.payment_completed ? "Yes":"No"}</td>
             <td className="admin-table-manage">
               <Link className="admin-table-button" to={`/admin/orders/${order.id}`}>Manage</Link>
             </td>
@@ -68,7 +72,7 @@ export function ManageOrder() {
   const [error, setError] = useState<string>("");
 
   async function fetchOrderData() {
-    const orderDataResult = await fetch(ADMIN_API_URL + "/order_data?id=" + orderId);
+    const orderDataResult = await fetch(ADMIN_API_URL + "/order?id=" + orderId);
 
     // Go back if no order data is found (indicating an invalid order id)
     if (!orderDataResult.ok) {
@@ -84,7 +88,7 @@ export function ManageOrder() {
     const confirmed = confirm(`Are you sure you want to cancel order #${orderId}? This will release all order items back into the stock.`);
 
     if (confirmed) {
-      const result = await fetch(ADMIN_API_URL + "/orders/cancel?id=" + orderId, {
+      const result = await fetch(ADMIN_API_URL + "/order/cancel?id=" + orderId, {
         method: "DELETE",
       });
 
@@ -101,7 +105,7 @@ export function ManageOrder() {
     const confirmed = confirm(`Are you sure you want to remove order #${orderId}? This will remove all data about this order from the database.`);
 
     if (confirmed) {
-      const result = await fetch(ADMIN_API_URL + "/orders/remove?id=" + orderId, {
+      const result = await fetch(ADMIN_API_URL + "/order/remove?id=" + orderId, {
         method: "DELETE",
       });
 
