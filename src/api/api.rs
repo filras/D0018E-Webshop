@@ -14,7 +14,7 @@ use crate::{
         connect_to_db,
         models::{IdQuery, Item, PaginatedSearchQuery, SortBy},
     },
-    schema::items::{discounted_price, dsl::items, price, title},
+    schema::items::{dsl::items, title},
 };
 
 pub fn routes() -> Router {
