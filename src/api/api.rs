@@ -10,8 +10,9 @@ use diesel::prelude::*;
 use crate::{
     db::{
         connect_to_db,
-        models::{IdQuery, Item, PaginatedSearchQuery},
-    }, schema::items::{dsl::items, title}
+        models::{IdQuery, Item, PaginatedSearchQuery, SortBy},
+    },
+    schema::items::{dsl::items, price, title},
 };
 
 pub fn routes() -> Router {
@@ -24,34 +25,44 @@ pub fn routes() -> Router {
 async fn get_items(query: Query<PaginatedSearchQuery>) -> impl IntoResponse {
     let query: PaginatedSearchQuery = query.0;
     let conn = &mut connect_to_db();
-    
+
     // Make different queries depending on if we're searching for username
-    let query_results = match query.search {
-        // Include only results filtered with search_string on username
-        Some(search_string) => {
-            items
+    let query_results = match query.sort_by {
+        Some(SortBy::Name) => items
+            .select(Item::as_select())
+            .order(title.asc())
+            .offset(((query.page - 1) * query.per_page) as i64)
+            .limit(query.per_page as i64)
+            .load::<Item>(conn),
+
+        Some(SortBy::Price) => items
+            .select(Item::as_select())
+            .order(price.asc())
+            .offset(((query.page - 1) * query.per_page) as i64)
+            .limit(query.per_page as i64)
+            .load::<Item>(conn),
+
+        None => match query.search {
+            // Include only results filtered with search_string on username
+            Some(search_string) => items
                 .select(Item::as_select())
-                .filter(
-                    title.like(format!("%{}%",search_string))
-                )
+                .filter(title.like(format!("%{}%", search_string)))
                 .offset(((query.page - 1) * query.per_page) as i64)
                 .limit(query.per_page as i64)
-                .load::<Item>(conn)
+                .load::<Item>(conn),
+            // Include all paginated results
+            None => items
+                .select(Item::as_select())
+                .offset(((query.page - 1) * query.per_page) as i64)
+                .limit(query.per_page as i64)
+                .load::<Item>(conn),
         },
-        // Include all paginated results
-        None => {
-            items
-                .select(Item::as_select())
-                .offset(((query.page - 1) * query.per_page) as i64)
-                .limit(query.per_page as i64)
-                .load::<Item>(conn)
-        }
     };
 
     // Make results into response
     match query_results {
         Ok(results) => (StatusCode::OK, Json(results)).into_response(),
-        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response()
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
     }
 }
 
@@ -59,16 +70,16 @@ async fn get_items(query: Query<PaginatedSearchQuery>) -> impl IntoResponse {
 async fn get_item_by_id(query: Query<IdQuery>) -> impl IntoResponse {
     let query = query.0;
     let conn = &mut connect_to_db();
-    
+
     // Make different queries depending on if we're searching for username
     let query_results = items
-                .select(Item::as_select())
-                .find(query.id)
-                .first::<Item>(conn);
+        .select(Item::as_select())
+        .find(query.id)
+        .first::<Item>(conn);
 
     // Make results into response
     match query_results {
         Ok(result) => (StatusCode::OK, Json(result)).into_response(),
-        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response()
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
     }
 }
