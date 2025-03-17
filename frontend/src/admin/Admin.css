@@ -30,6 +30,15 @@
   margin: 0 0 20px;
 }
 
+.admin-error {
+  color: rgb(238, 105, 105);
+}
+
+.admin-button {
+  padding: 5px 10px;
+  font-size: medium;
+}
+
 .admin-section {
   margin: 10px 0;
 }

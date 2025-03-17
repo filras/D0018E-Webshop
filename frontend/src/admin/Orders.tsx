@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { ADMIN_API_URL } from "../etc/api_url";
-import { Link, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import { CURRENCY } from "../etc/const";
 
 interface Props {
@@ -63,21 +63,72 @@ export function Orders({ }: Props) {
 export function ManageOrder() {
   const orderId = Number(useParams().orderId);
 
+  const navigate = useNavigate();
   const [orderData, setOrderData] = useState<OrderWithUserDataAndItems | null>(null);
+  const [error, setError] = useState<string>("");
 
-  async function fetchOrders() {
+  async function fetchOrderData() {
     const orderDataResult = await fetch(ADMIN_API_URL + "/order_data?id=" + orderId);
+
+    // Go back if no order data is found (indicating an invalid order id)
+    if (!orderDataResult.ok) {
+      navigate("/admin/orders");
+    }
+
     const orderData = await orderDataResult.json() as OrderWithUserDataAndItems;
     setOrderData(orderData);
   }
 
-  // Fetch orders once
-  useEffect(() => {fetchOrders()}, []);
+  // Cancel a pending order, i.e. release items and stop waiting for payment
+  async function cancelOrder() {
+    const confirmed = confirm(`Are you sure you want to cancel order #${orderId}? This will release all order items back into the stock.`);
+
+    if (confirmed) {
+      const result = await fetch(ADMIN_API_URL + "/orders/cancel?id=" + orderId, {
+        method: "DELETE",
+      });
+
+      if (result.ok) {
+        navigate("/admin/orders");
+      } else {
+        setError(await result.text());
+      }
+    }
+  }
+  
+  // Remove a finished order
+  async function removeOrder() {
+    const confirmed = confirm(`Are you sure you want to remove order #${orderId}? This will remove all data about this order from the database.`);
+
+    if (confirmed) {
+      const result = await fetch(ADMIN_API_URL + "/orders/remove?id=" + orderId, {
+        method: "DELETE",
+      });
+
+      if (result.ok) {
+        navigate("/admin/orders");
+      } else {
+        setError(await result.text());
+      }
+    }
+  }
+
+  // Fetch order data once at render
+  useEffect(() => {fetchOrderData()}, []);
 
   return (
     <>
-      <Link to="/admin/orders">Return to order list</Link>
-      <h1>Manage order #{orderId}</h1>
+      <Link to="/admin/orders">&lt; Return to order list</Link>
+      <br /><br />
+      <h1 className="admin-title">Manage order #{orderId}</h1>
+      { error && <p className="admin-error">Error: {error}</p> }
+
+      { orderData?.payment_completed ? (
+        <button className="admin-button" onClick={() => removeOrder()}>Remove order</button>
+      ) : (
+        <button className="admin-button" onClick={() => cancelOrder()}>Cancel order</button>
+      ) }
+
       <div className="admin-order-grid">
         <div>
           <h2>Order items</h2>
