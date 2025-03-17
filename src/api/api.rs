@@ -5,14 +5,16 @@ use axum::{
     routing::get,
     Router,
 };
+
 use diesel::prelude::*;
+use diesel::{dsl::sql, sql_types::Integer};
 
 use crate::{
     db::{
         connect_to_db,
         models::{IdQuery, Item, PaginatedSearchQuery, SortBy},
     },
-    schema::items::{dsl::items, price, title},
+    schema::items::{discounted_price, dsl::items, price, title},
 };
 
 pub fn routes() -> Router {
@@ -37,7 +39,9 @@ async fn get_items(query: Query<PaginatedSearchQuery>) -> impl IntoResponse {
 
         Some(SortBy::Price) => items
             .select(Item::as_select())
-            .order(price.asc())
+            .order(sql::<Integer>(
+                "LEAST(COALESCE(discounted_price, price),price) ASC",
+            ))
             .offset(((query.page - 1) * query.per_page) as i64)
             .limit(query.per_page as i64)
             .load::<Item>(conn),

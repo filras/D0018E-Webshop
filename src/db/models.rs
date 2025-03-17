@@ -246,6 +246,13 @@ fn default_page() -> usize {
 fn default_per_page() -> usize {
     10
 }
+
+#[derive(Debug, Deserialize)]
+pub enum SortBy {
+    Name,
+    Price,
+}
+
 #[derive(Debug, Deserialize)]
 #[tsync]
 pub struct PaginatedSearchQuery {
@@ -254,6 +261,7 @@ pub struct PaginatedSearchQuery {
     #[serde(default = "default_per_page")]
     pub per_page: usize,
 
+    pub sort_by: Option<SortBy>,
     pub search: Option<String>,
 }
 
