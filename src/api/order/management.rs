@@ -23,6 +23,7 @@ pub fn create_order(conn: &mut MysqlConnection, user_id: i32, shipping_info: Shi
         // Check if user has a current ongoing order
         let ongoing_order_query = orders::table
             .filter(orders::user_id.eq(user_id))
+            .filter(orders::payment_completed.eq(false))
             .select(Order::as_select())
             .first::<Order>(conn);
         if ongoing_order_query.is_ok() {
@@ -89,6 +90,7 @@ pub fn create_order(conn: &mut MysqlConnection, user_id: i32, shipping_info: Shi
         // Get id of the order we just created
         let orderid_result = orders::table
             .filter(orders::user_id.eq(user_id))
+            .filter(orders::payment_completed.eq(false))
             .select(orders::id)
             .first::<i32>(conn);
         if orderid_result.is_err() {

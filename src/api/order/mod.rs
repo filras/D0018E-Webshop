@@ -22,6 +22,7 @@ pub fn routes() -> Router {
     Router::new()
         .route("/order/pending", get(handle_get_pending))
         .route("/order/create", post(handle_create_order))
+        .route("/order/complete", post(handle_complete_order))
         .route("/order/cancel", delete(handle_cancel_order))
         .layer(middleware::from_fn(auth::middleware::require_auth))
 }
@@ -44,6 +45,7 @@ async fn handle_get_pending(ctx: Result<Ctx, String>) -> impl IntoResponse {
     // Check if user has pending order
     let ongoing_order_query = orders::table
         .filter(orders::user_id.eq(user.user_id()))
+        .filter(orders::payment_completed.eq(false))
         .select(Order::as_select())
         .first::<Order>(conn);
     if ongoing_order_query.is_err() {
@@ -77,6 +79,39 @@ async fn handle_create_order(
     (StatusCode::OK, order_id.to_string()).into_response()
 }
 
+// Get current pending order for authed user
+async fn handle_complete_order(ctx: Result<Ctx, String>) -> impl IntoResponse {
+    let conn = &mut connect_to_db();
+    let user = ctx.unwrap();
+    
+    // Get id of the user's pending order
+    let orderid_result = orders::table
+        .filter(orders::user_id.eq(user.user_id()))
+        .filter(orders::payment_completed.eq(false))
+        .select(orders::id)
+        .first::<i32>(conn);
+    if orderid_result.is_err() {
+        let error = orderid_result.unwrap_err();
+        
+        if error == Error::NotFound {
+            return (StatusCode::BAD_REQUEST, format!("User {} has no pending order", user.user_id())).into_response();
+        } else {
+            return (StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to read order for user {}: {}", user.user_id(), error)).into_response();
+        }
+    }
+    let order_id = orderid_result.unwrap();
+
+    // Update order to mark it as completed
+    match diesel::update(orders::table)
+        .filter(orders::id.eq(order_id))
+        .set(orders::payment_completed.eq(true))
+        .execute(conn)
+    {
+        Ok(_) => format!("Completed order #{}", order_id).into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to complete order #{}: {}", order_id, e.to_string())).into_response(),
+    }
+}
+
 // Cancel currently pending order for authed user
 async fn handle_cancel_order(ctx: Result<Ctx, String>) -> impl IntoResponse {
     let conn = &mut connect_to_db();
@@ -85,6 +120,7 @@ async fn handle_cancel_order(ctx: Result<Ctx, String>) -> impl IntoResponse {
     // Check if user has pending order
     let ongoing_order_query = orders::table
         .filter(orders::user_id.eq(user.user_id()))
+        .filter(orders::payment_completed.eq(false))
         .select(orders::id)
         .first::<i32>(conn);
     if ongoing_order_query.is_err() {
