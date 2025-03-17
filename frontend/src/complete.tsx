@@ -6,41 +6,50 @@ import { API_URL } from "./etc/api_url";
 
 export default function complete() {
 
-    const [products, setProducts] = useState<Array<OrderItems>>([]);
+    const [order, setOrderData] = useState<Order>();
     const [loading, setLoading] = useState<boolean>(true);
   
     const loadProd = async () => {
-      const itemRequest = await fetch(API_URL + "/order", {method: "GET"});
-      if (itemRequest.ok) {
-        const items: Array<OrderItems> = await itemRequest.json();
-        setProducts(items);
+      const orderRequest = await fetch(API_URL + "/order/pending");
+      if (orderRequest.ok) {
+        const orders: Order = await orderRequest.json();
+        setOrderData(orders);
       }
       setLoading(false);
     }
   
     
-    // Load products once at start of session
+    // Load order once at start of session
     useEffect(() => {loadProd();}, [])
     
     
     return(
    
-        <div className="comp">
-          
-        
+        <div className="comp">   
             <h1 className="comp-title">
                 Your order:
             </h1>
             <br></br>
-            {
-        !loading && products.map((value: OrderItems) =>(
-               
-           <><img src={payImg} className="comp-pics"
+            
+            <table className="comp-table">
+                <tr>
+                    <th>Order ID</th>
+                    <th>Total price</th>
+                    <th>Shipping Address</th> 
+                </tr>
+                    {
+                    !loading && order && 
+                        <tr key={order.id}>
+                            <td>{order.id}</td> 
+                            <td>{order.total}</td>
+                            <td>{order.address}</td>
+                        </tr>
+                    }  
+            </table>
+            <img src={payImg} className="comp-pics"
                 onClick={async () => {
                     let response = await fetch(API_URL + "/order/complete", {
-                        method: "POST",
-                        body: JSON.stringify(value),
-                        headers: { "Content-Type": "application/json" }
+                        method: "POST"
                     });
                     if (response instanceof Error) {
                         console.log("Something went wrong when buying order");
@@ -50,12 +59,11 @@ export default function complete() {
                         window.location.href = "/";
                     }
                     
-                } } /><img src={cancelImg} className="comp-pics"
+                }}/>
+                <img src={cancelImg} className="comp-pics"
                     onClick={async () => {
                         let response = await fetch(API_URL + "/order/cancel", {
-                            method: "POST",
-                            body: JSON.stringify(value),
-                            headers: { "Content-Type": "application/json" }
+                            method: "DELETE"
                         });
                         if (response instanceof Error) {
                             console.log("Something went wrong when removing order");
@@ -65,8 +73,8 @@ export default function complete() {
                             window.location.href = "/";
                         }
                         
-                    } } /></>
-        ))}  
+                    }}/>
+          
         </div>
     )
 }
