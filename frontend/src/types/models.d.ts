@@ -1,90 +1,5 @@
 /* This file is generated and managed by tsync */
 
-interface OrderWithUserData {
-  id: number;
-  address: string;
-  zipcode: string;
-  co?: string;
-  country: string;
-  comment?: string;
-  total: number;
-  payment_completed: boolean;
-  username: string;
-  firstname: string;
-  surname: string;
-  email: string;
-}
-
-interface OrderWithUserDataAndItems {
-  id: number;
-  address: string;
-  zipcode: string;
-  co?: string;
-  country: string;
-  comment?: string;
-  total: number;
-  payment_completed: boolean;
-  username: string;
-  firstname: string;
-  surname: string;
-  email: string;
-  items: Array<OrderItemWithData>;
-}
-
-interface OrderItemWithData {
-  name: string;
-  price: number;
-  discounted_price?: number;
-  amount: number;
-  total: number;
-}
-
-interface CombinedCartItem {
-  item_id: number;
-  title: string;
-  description?: string;
-  price: number;
-  in_stock: number;
-  average_rating?: number;
-  discounted_price?: number;
-  amount: number;
-}
-
-interface UpdateCart {
-  item_id: number;
-  amount: number;
-}
-
-interface ItemReviewWithComments {
-  user_id: number;
-  review_id: number;
-  firstname: string;
-  surname: string;
-  comment?: string;
-  rating: number;
-  comments: Array<ReviewComment>;
-}
-
-interface ReviewComment {
-  id: number;
-  user_id: number;
-  review_id: number;
-  firstname: string;
-  surname: string;
-  comment: string;
-  comment_id?: number;
-}
-
-interface NewReview {
-  comment?: string;
-  rating: number;
-}
-
-interface NewComment {
-  comment: string;
-  parent_id?: number;
-}
-
 interface Item {
   id: number;
   title: string;
@@ -205,4 +120,97 @@ interface PaginatedIdQuery {
   page: number;
   per_page: number;
   id: number;
+}
+
+interface CombinedCartItem {
+  item_id: number;
+  title: string;
+  description?: string;
+  price: number;
+  in_stock: number;
+  average_rating?: number;
+  discounted_price?: number;
+  amount: number;
+}
+
+interface UpdateCart {
+  item_id: number;
+  amount: number;
+}
+
+interface ShippingInformation {
+  address: string;
+  co?: string;
+  zipcode: string;
+  country: string;
+  comment?: string;
+}
+
+interface OrderWithUserData {
+  id: number;
+  address: string;
+  zipcode: string;
+  co?: string;
+  country: string;
+  comment?: string;
+  total: number;
+  payment_completed: boolean;
+  username: string;
+  firstname: string;
+  surname: string;
+  email: string;
+}
+
+interface OrderWithUserDataAndItems {
+  id: number;
+  address: string;
+  zipcode: string;
+  co?: string;
+  country: string;
+  comment?: string;
+  total: number;
+  payment_completed: boolean;
+  username: string;
+  firstname: string;
+  surname: string;
+  email: string;
+  items: Array<OrderItemWithData>;
+}
+
+interface OrderItemWithData {
+  name: string;
+  price: number;
+  discounted_price?: number;
+  amount: number;
+  total: number;
+}
+
+interface ItemReviewWithComments {
+  user_id: number;
+  review_id: number;
+  firstname: string;
+  surname: string;
+  comment?: string;
+  rating: number;
+  comments: Array<ReviewComment>;
+}
+
+interface ReviewComment {
+  id: number;
+  user_id: number;
+  review_id: number;
+  firstname: string;
+  surname: string;
+  comment: string;
+  comment_id?: number;
+}
+
+interface NewReview {
+  comment?: string;
+  rating: number;
+}
+
+interface NewComment {
+  comment: string;
+  parent_id?: number;
 }
