@@ -215,6 +215,42 @@ pub fn cancel_order(conn: &mut MysqlConnection, order_id: i32) -> Result<(), Str
     }
 }
 
+pub fn remove_order(conn: &mut MysqlConnection, order_id: i32) -> Result<(), String> {
+    // Run all operations as a transaction to keep it race condition and mutex safe
+    let mut error_msg: Option<String> = None;
+    let transaction_result = conn.transaction::<(), diesel::result::Error, _>(|conn| -> Result<(), Error> {
+        // Delete order items
+        let delete_order_items_result = diesel::delete(order_items::table)
+            .filter(order_items::order_id.eq(order_id))
+            .execute(conn);
+        if delete_order_items_result.is_err() {
+            error_msg = Some(format!("Order Items deletion failed: {}", delete_order_items_result.unwrap_err().to_string()));
+            return Err(Error::RollbackTransaction)
+        }
+    
+        // Delete order
+        let delete_order_result = diesel::delete(orders::table.find(order_id).filter(orders::payment_completed.eq(true))).execute(conn);
+        if delete_order_result.is_err() {
+            error_msg = Some(format!("Order deletion failed: {}", delete_order_items_result.unwrap_err().to_string()));
+            return Err(Error::RollbackTransaction)
+        } else if delete_order_result.unwrap() == 0 {
+            error_msg = Some("Order is pending and may not be removed (use cancel instead)".to_string());
+            return Err(Error::RollbackTransaction)
+        }
+
+        Ok(())
+    });
+
+    // Handle error conditions
+    match transaction_result {
+        Ok(order_id) => Ok(order_id),
+        Err(db_error) => match error_msg {
+            Some(msg) => Err(msg),
+            None => Err(db_error.to_string()),
+        }
+    }
+}
+
 // Attempts to reserve stock for the given item, will return Err if not enough stock
 // WARNING: Must be run inside a transaction to prevent race conditions!
 fn reserve_item_stock(conn: &mut MysqlConnection, cart_item: CartItemWithItemData) -> Result<(), String> {
