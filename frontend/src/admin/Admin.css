@@ -30,6 +30,15 @@
   margin: 0 0 20px;
 }
 
+.admin-error {
+  color: rgb(238, 105, 105);
+}
+
+.admin-button {
+  padding: 5px 10px;
+  font-size: medium;
+}
+
 .admin-section {
   margin: 10px 0;
 }
@@ -62,4 +71,10 @@
 
 .admin-table-editing input {
   width: 100%;
+}
+
+.admin-order-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
 }

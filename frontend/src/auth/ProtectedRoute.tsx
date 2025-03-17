@@ -11,11 +11,16 @@ export interface AuthUser {
 
 interface AuthUserProps {
   user: AuthUser | null;
+  userLoading: boolean;
   requireAdmin?: boolean;
   requireUnauthed?: boolean;
 }
 
-export function ProtectedRoute({ children, user, requireAdmin, requireUnauthed }: PropsWithChildren<AuthUserProps>) {
+export function ProtectedRoute({ children, user, userLoading, requireAdmin, requireUnauthed }: PropsWithChildren<AuthUserProps>) {
+  if (userLoading) {
+    return <h1>Loading...</h1>
+  }
+  
   // Enforce noauth on login/register page
   if (requireUnauthed && user !== null) {
     return <Navigate to="/" replace />

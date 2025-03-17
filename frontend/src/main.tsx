@@ -66,12 +66,12 @@ const  App = () => {
           <Route index element={<Homepage user={user} loadingUser={loading}  />} />
           <Route path="/item/:itemId" element={<ProductPage user={user} />} />
           <Route path="/login" element={
-            <ProtectedRoute user={user} requireUnauthed>
+            <ProtectedRoute user={user} userLoading={loading} requireUnauthed>
               <Login user={user} setUser={handleLogin} />
             </ProtectedRoute>
           }/>
           <Route path="/register" element={
-            <ProtectedRoute user={user} requireUnauthed>
+            <ProtectedRoute user={user} userLoading={loading} requireUnauthed>
               <Register user={user} setUser={handleLogin}/>
             </ProtectedRoute>
           }/>
@@ -79,7 +79,7 @@ const  App = () => {
           <Route path='/checkout' element={<Checkout/>}></Route>
           <Route path='/complete' element={<Complete/>}></Route>
           <Route path="/admin/*" element={
-            <ProtectedRoute user={user} requireAdmin>
+            <ProtectedRoute user={user} userLoading={loading} requireAdmin>
               <AdminPanel user_id={user?.user_id || 0 /* User will always exist inside ProtectedRoutes, so this is safe */} />
             </ProtectedRoute>
           }>

@@ -91,7 +91,7 @@ interface Comment {
   comment: string;
 }
 
-interface OrderItems {
+interface OrderItem {
   order_id: number;
   item_id: number;
   amount: number;
@@ -136,6 +136,53 @@ interface CombinedCartItem {
 interface UpdateCart {
   item_id: number;
   amount: number;
+}
+
+interface ShippingInformation {
+  address: string;
+  co?: string;
+  zipcode: string;
+  country: string;
+  comment?: string;
+}
+
+interface OrderWithUserData {
+  id: number;
+  address: string;
+  zipcode: string;
+  co?: string;
+  country: string;
+  comment?: string;
+  total: number;
+  payment_completed: boolean;
+  username: string;
+  firstname: string;
+  surname: string;
+  email: string;
+}
+
+interface OrderWithUserDataAndItems {
+  id: number;
+  address: string;
+  zipcode: string;
+  co?: string;
+  country: string;
+  comment?: string;
+  total: number;
+  payment_completed: boolean;
+  username: string;
+  firstname: string;
+  surname: string;
+  email: string;
+  items: Array<OrderItemWithData>;
+}
+
+interface OrderItemWithData {
+  name: string;
+  price: number;
+  discounted_price?: number;
+  amount: number;
+  total: number;
 }
 
 interface ItemReviewWithComments {
