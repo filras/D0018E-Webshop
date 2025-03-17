@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import shoppingcart from "./assets/shoppingcart.png";
 import { API_URL } from "./etc/api_url";
 import bird1 from "./assets/bird1.jpg";
-//import removebutton from "./assets/deleteButton.gif";
 import "./ShoppingCart.css";
 import minus from "./assets/minusButton.png";
 import plus from "./assets/plussbutton.png";
@@ -109,27 +108,56 @@ export default function ShoppingCart() {
               const notify = (message: string) => {
                 toast.success(message);
               };
-              notify('You just added one ' + value.title);    
-              }}>
-            </img>
+
+              notify(`Removed one ${value.title} from the cart`);
+            }} />
             <ToastContainer 
-              theme="dark"
-              position="top-center"
-              autoClose={3000}/>  
+                position="top-center"
+                autoClose={1000}
+                hideProgressBar={true}
+                newestOnTop={false}
+                closeOnClick={false}
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover={true}
+                theme="colored"
+                toastStyle={{
+                  borderRadius: "15px",
+                  fontSize: "14px",
+                  padding: "8px 12px",
+                  minWidth: "200px",
+                  color: "black",
+                }}
+                /> 
             <img src={plus} className='cart-plus-minus' alt="cart-plus-minus"
               onClick={()=> {
               increment(value);
               const notify = (message: string) => {
                 toast.success(message);
               };
-              
-              notify('You added one ' + value.title);
-              }}>
-            </img>
+
+              notify(`Added one ${value.title} to cart`);
+            }} />
             <ToastContainer 
-              theme="dark"
-              position="top-center"
-              autoClose={3000}/>  
+                position="top-center"
+                autoClose={1000}
+                hideProgressBar={true}
+                newestOnTop={false}
+                closeOnClick={false}
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover={true}
+                theme="colored"
+                toastStyle={{
+                  borderRadius: "15px",
+                  fontSize: "14px",
+                  padding: "8px 12px",
+                  minWidth: "200px",
+                  color: "black",
+                }}
+                /> 
             <div className='cart-price'>
               {value.price+"  ₺"}
               <br></br>        
