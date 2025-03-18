@@ -57,11 +57,22 @@ pub fn create_order(conn: &mut MysqlConnection, user_id: i32, shipping_info: Shi
         }
     
         let cart_items = cart_items_result.unwrap();
+
+        // Don't allow empty orders
+        if cart_items.len() == 0 {
+            error_msg = Some("Empty orders not allowed".to_string());
+            return Err(Error::RollbackTransaction);
+        }
+
         let mut total = 0;
     
         for cart_item in &cart_items {
             let price = match cart_item.discounted_price {
-                Some(price) => price,
+                Some(discounted_price) => match discounted_price == 0 {
+                    // Values of 0 should be treated as null for discounted price
+                    true => cart_item.price,
+                    false => discounted_price,
+                },
                 None => cart_item.price,
             };
     
