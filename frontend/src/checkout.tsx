@@ -24,7 +24,7 @@ export default function checkout() {
 
   function totalPrice() {
     let total = 0;
-    products.forEach(product => total += product.discounted_price ? product.discounted_price * product.amount : product.price);
+    products.forEach(product => total += (product.discounted_price ? product.discounted_price : product.price) * product.amount);
     return total;
   }
 
