@@ -57,6 +57,13 @@ pub fn create_order(conn: &mut MysqlConnection, user_id: i32, shipping_info: Shi
         }
     
         let cart_items = cart_items_result.unwrap();
+
+        // Don't allow empty orders
+        if cart_items.len() == 0 {
+            error_msg = Some("Empty orders not allowed".to_string());
+            return Err(Error::RollbackTransaction);
+        }
+
         let mut total = 0;
     
         for cart_item in &cart_items {
